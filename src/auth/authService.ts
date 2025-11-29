@@ -24,6 +24,27 @@ export class AuthService {
 
   constructor() {}
 
+  async createUser(id: string, password: string): Promise<{ success: boolean; error?: string }> {
+    if (!id || !password) {
+      return { success: false, error: 'IDとパスワードは必須です' };
+    }
+    try {
+      const email = `${id}@example.com`;
+      const bcrypt = require('bcryptjs');
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+      const user = new User({ username: id, email, password: hashedPassword });
+      await user.save();
+      return { success: true };
+    } catch (err) {
+      let errorMsg = 'ユーザー作成に失敗しました';
+      if (typeof err === 'object' && err !== null && 'code' in err && (err as any).code === 11000) {
+        errorMsg = 'IDまたはメールが既に存在します';
+      }
+      return { success: false, error: errorMsg };
+    }
+  }
+
   async authenticate(id: string, password: string): Promise<AuthResult> {
     try {
       if (this.locked) {

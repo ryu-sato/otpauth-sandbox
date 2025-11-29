@@ -30,24 +30,13 @@ app.get('/', (req, res) => {
 
 app.post('/api/create-user', async (req, res) => {
   const { id, password } = req.body;
-  if (!id || !password) {
-    return res.status(400).json({ success: false, error: 'IDとパスワードは必須です' });
-  }
-  try {
-    // emailはidから生成（仮）
-    const email = `${id}@example.com`;
-    const bcrypt = require('bcryptjs');
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-    const user = new User({ username: id, email, password: hashedPassword });
-    await user.save();
+  const authService = new AuthService();
+  const result = await authService.createUser(id, password);
+  if (result.success) {
     res.json({ success: true });
-  } catch (err) {
-    let errorMsg = 'ユーザー作成に失敗しました';
-    if (typeof err === 'object' && err !== null && 'code' in err && (err as any).code === 11000) {
-      errorMsg = 'IDまたはメールが既に存在します';
-    }
-    res.status(500).json({ success: false, error: errorMsg });
+  } else {
+    const status = result.error === 'IDとパスワードは必須です' ? 400 : 500;
+    res.status(status).json({ success: false, error: result.error });
   }
 });
 
