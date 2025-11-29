@@ -24,6 +24,31 @@ export class AuthService {
 
   constructor() {}
 
+  /**
+   * プロフィール編集
+   * @param token JWTトークン
+   * @param username 編集対象ユーザー名
+   * @param email 新しいメールアドレス
+   */
+  async editProfile(token: string, username: string, email: string): Promise<{ success: boolean; error?: string }> {
+    const jwt = require('jsonwebtoken');
+    let payload: any;
+    try {
+      payload = jwt.verify(token, 'test-secret');
+    } catch (e) {
+      return { success: false, error: '認証トークンが不正です' };
+    }
+    if (!username || !email) {
+      return { success: false, error: 'バリデーションエラー' };
+    }
+    if (payload.id !== username) {
+      return { success: false, error: '本人以外は編集できません' };
+    }
+    // 本来はDB更新処理を行う
+    // ここではダミーで成功を返す
+    return { success: true };
+  }
+
   async createUser(id: string, password: string): Promise<{ success: boolean; error?: string }> {
     if (!id || !password) {
       return { success: false, error: 'IDとパスワードは必須です' };

@@ -59,23 +59,23 @@ app.post('/api/profile/edit', async (req, res) => {
     return res.status(401).json({ error: '認証トークンが必要です' });
   }
   const token = authHeader.replace('Bearer ', '');
-  let payload: any;
-  try {
-    payload = jwt.verify(token, 'test-secret');
-  } catch (e) {
-    return res.status(401).json({ error: '認証トークンが不正です' });
-  }
   const { username, email } = req.body;
-  if (!username || !email) {
-    return res.status(400).json({ error: 'バリデーションエラー' });
+  const authService = new AuthService();
+  const result = await authService.editProfile(token, username, email);
+  if (result.success) {
+    res.json({ success: true });
+  } else {
+    // エラー内容に応じてステータスを返す
+    if (result.error === '認証トークンが不正です') {
+      res.status(401).json({ error: result.error });
+    } else if (result.error === 'バリデーションエラー') {
+      res.status(400).json({ error: result.error });
+    } else if (result.error === '本人以外は編集できません') {
+      res.status(403).json({ error: result.error });
+    } else {
+      res.status(500).json({ error: result.error });
+    }
   }
-  // 本人確認
-  if (payload.id !== username) {
-    return res.status(403).json({ error: '本人以外は編集できません' });
-  }
-  // 編集処理（ダミー）
-  // 本来はDB更新処理を行う
-  res.json({ success: true });
 });
 
 app.listen(PORT, () => {
