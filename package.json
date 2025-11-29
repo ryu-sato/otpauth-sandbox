@@ -1,6 +1,6 @@
 {
   "scripts": {
-     "build": "webpack --config webpack.config.js",
+     "build": "webpack --watch --config webpack.config.js",
      "start": "nodemon --watch src --ext ts,tsx --exec ts-node src/server.ts",
      "test": "jest",
      "prepare": "husky install"
