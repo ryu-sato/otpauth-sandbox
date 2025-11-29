@@ -5,6 +5,8 @@ export enum AuthErrorType {
   SystemError = 'SystemError',
 }
 
+import User from './User';
+
 export type AuthError =
   | { type: AuthErrorType.ValidationError; message: string }
   | { type: AuthErrorType.AuthFailed; message: string }
@@ -17,15 +19,10 @@ export type AuthResult = {
 };
 
 export class AuthService {
-  private userId: string;
-  private passwordHash: string;
   private loginAttempts: number = 0;
   private locked: boolean = false;
 
-  constructor(user: { userId: string; passwordHash: string }) {
-    this.userId = user.userId;
-    this.passwordHash = user.passwordHash;
-  }
+  constructor() {}
 
   async authenticate(id: string, password: string): Promise<AuthResult> {
     try {
@@ -41,7 +38,24 @@ export class AuthService {
           error: { type: AuthErrorType.ValidationError, message: 'IDとパスワードは必須です' },
         };
       }
-      if (id !== this.userId || password !== this.passwordHash) {
+      // Mongooseでユーザー検索
+      const user = await User.findOne({ username: id });
+      if (!user) {
+        this.loginAttempts++;
+        if (this.loginAttempts >= 5) {
+          this.locked = true;
+          return {
+            success: false,
+            error: { type: AuthErrorType.Locked, message: 'アカウントがロックされています' },
+          };
+        }
+        return {
+          success: false,
+          error: { type: AuthErrorType.AuthFailed, message: 'IDまたはパスワードが不正です' },
+        };
+      }
+      // パスワード照合（本来はハッシュ化して比較するべき）
+      if (password !== user.password) {
         this.loginAttempts++;
         if (this.loginAttempts >= 5) {
           this.locked = true;
