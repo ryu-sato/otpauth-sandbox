@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+// import { AuthService, AuthErrorType } from './authService';
 
 type Props = {
   onSuccess?: (userId: string) => void;
@@ -11,24 +12,43 @@ const LoginForm: React.FC<Props> = ({ onSuccess }) => {
   const [loggedIn, setLoggedIn] = useState(false);
   const [sessionTimer, setSessionTimer] = useState<NodeJS.Timeout | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    console.log('handleSubmit called');
     e.preventDefault();
-    const newErrors: { id?: string; password?: string } = {};
-    if (!id) newErrors.id = 'IDは必須です';
-    if (!password) newErrors.password = 'パスワードは必須です';
-    setErrors(newErrors);
-    if (Object.keys(newErrors).length === 0) {
-      // 認証成功（仮実装: ID/pass固定）
-      if (id === 'user1' && password === 'pass123') {
-        setLoggedIn(true);
-        if (onSuccess) onSuccess(id);
-        // セッションタイマー開始（30分後に自動ログアウト）
-        const timer = setTimeout(() => {
-          setLoggedIn(false);
-          setId('');
-          setPassword('');
-        }, 30 * 60 * 1000);
-        setSessionTimer(timer);
+    setErrors({});
+    // 認証APIを呼び出す
+    const response = await fetch('/api/authenticate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, password })
+    });
+    const result = await response.json();
+    if (result.success) {
+      setLoggedIn(true);
+      if (onSuccess) onSuccess(id);
+      // セッションタイマー開始（30分後に自動ログアウト）
+      const timer = setTimeout(() => {
+        setLoggedIn(false);
+        setId('');
+        setPassword('');
+      }, 30 * 60 * 1000);
+      setSessionTimer(timer);
+    } else {
+      // エラー内容に応じて表示
+      if (result.error) {
+        const newErrors: { id?: string; password?: string } = {};
+  if (result.error.type === 'ValidationError') {
+          if (!id) newErrors.id = 'IDは必須です';
+          if (!password) newErrors.password = 'パスワードは必須です';
+  } else if (result.error.type === 'AuthFailed') {
+          newErrors.id = 'IDまたはパスワードが不正です';
+          newErrors.password = 'IDまたはパスワードが不正です';
+  } else if (result.error.type === 'Locked') {
+          newErrors.id = 'アカウントがロックされています';
+  } else if (result.error.type === 'SystemError') {
+          newErrors.id = 'システム障害が発生しました';
+        }
+        setErrors(newErrors);
       }
     }
   };
