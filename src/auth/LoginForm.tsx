@@ -9,6 +9,7 @@ const LoginForm: React.FC<Props> = ({ onSuccess }) => {
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ id?: string; password?: string }>({});
   const [loggedIn, setLoggedIn] = useState(false);
+  const [sessionTimer, setSessionTimer] = useState<NodeJS.Timeout | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,9 +22,22 @@ const LoginForm: React.FC<Props> = ({ onSuccess }) => {
       if (id === 'user1' && password === 'pass123') {
         setLoggedIn(true);
         if (onSuccess) onSuccess(id);
+        // セッションタイマー開始（30分後に自動ログアウト）
+        const timer = setTimeout(() => {
+          setLoggedIn(false);
+          setId('');
+          setPassword('');
+        }, 30 * 60 * 1000);
+        setSessionTimer(timer);
       }
     }
   };
+
+  React.useEffect(() => {
+    return () => {
+      if (sessionTimer) clearTimeout(sessionTimer);
+    };
+  }, [sessionTimer]);
 
   return (
     <div>
