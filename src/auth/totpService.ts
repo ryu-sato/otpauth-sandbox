@@ -1,6 +1,7 @@
 import { authenticator } from 'otplib';
 import * as qrcode from 'qrcode';
 
+
 export type TOTPSecretDTO = {
   userId: string;
   secret: string;
@@ -9,6 +10,8 @@ export type TOTPSecretDTO = {
 };
 
 export class TOTPService {
+  private failedAttempts: Record<string, number> = {};
+
   async generateSecret(userId: string): Promise<TOTPSecretDTO> {
     const secret = authenticator.generateSecret();
     const otpauth = authenticator.keyuri(userId, 'OTPAuthSandbox', secret);
@@ -29,7 +32,19 @@ export class TOTPService {
     });
   }
 
-  verifyCode(secret: string, code: string): boolean {
-    return authenticator.check(code, secret);
+  verifyCode(secret: string, code: string, userId?: string): boolean {
+    const valid = authenticator.check(code, secret);
+    if (userId) {
+      if (!valid) {
+        this.failedAttempts[userId] = (this.failedAttempts[userId] || 0) + 1;
+      } else {
+        this.failedAttempts[userId] = 0;
+      }
+    }
+    return valid;
+  }
+
+  isLocked(userId: string): boolean {
+    return (this.failedAttempts[userId] || 0) >= 3;
   }
 }
