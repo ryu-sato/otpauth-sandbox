@@ -54,8 +54,10 @@ export class AuthService {
           error: { type: AuthErrorType.AuthFailed, message: 'IDまたはパスワードが不正です' },
         };
       }
-      // パスワード照合（本来はハッシュ化して比較するべき）
-      if (password !== user.password) {
+      // パスワード照合（bcryptjsによるハッシュ比較）
+      const bcrypt = require('bcryptjs');
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
         this.loginAttempts++;
         if (this.loginAttempts >= 5) {
           this.locked = true;

@@ -36,12 +36,17 @@ app.post('/api/create-user', async (req, res) => {
   try {
     // emailはidから生成（仮）
     const email = `${id}@example.com`;
-    const user = new User({ username: id, email, password });
+    const bcrypt = require('bcryptjs');
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const user = new User({ username: id, email, password: hashedPassword });
     await user.save();
     res.json({ success: true });
-  } catch (err: any) {
+  } catch (err) {
     let errorMsg = 'ユーザー作成に失敗しました';
-    if (err.code === 11000) errorMsg = 'IDまたはメールが既に存在します';
+    if (typeof err === 'object' && err !== null && 'code' in err && (err as any).code === 11000) {
+      errorMsg = 'IDまたはメールが既に存在します';
+    }
     res.status(500).json({ success: false, error: errorMsg });
   }
 });
