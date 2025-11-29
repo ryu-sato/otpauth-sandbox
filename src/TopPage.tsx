@@ -2,9 +2,12 @@ import React from 'react';
 import { useState } from 'react';
 import UserCreateForm from './auth/UserCreateForm';
 import LoginForm from './auth/LoginForm';
+import UserProfile from './UserProfile';
+import { IUser } from './auth/User';
 
 const TopPage: React.FC = () => {
-  const [page, setPage] = useState<'top' | 'create' | 'login'>('top');
+  const [page, setPage] = useState<'top' | 'create' | 'login' | 'profile'>('top');
+  const [user, setUser] = useState<IUser | null>(null);
 
   return (
     <div style={{ maxWidth: 500, margin: '2rem auto', padding: 20 }}>
@@ -23,8 +26,18 @@ const TopPage: React.FC = () => {
       )}
       {page === 'login' && (
         <>
-          <LoginForm onSuccess={() => setPage('top')} />
+          <LoginForm onSuccess={(userId) => {
+            // 仮のユーザー情報（本来はAPIから取得）
+            setUser({ username: userId, email: userId + '@example.com', password: '', createdAt: new Date() } as IUser);
+            setPage('profile');
+          }} />
           <button style={{ marginTop: 16 }} onClick={() => setPage('top')}>戻る</button>
+        </>
+      )}
+      {page === 'profile' && user && (
+        <>
+          <UserProfile user={user} />
+          <button style={{ marginTop: 16 }} onClick={() => { setUser(null); setPage('top'); }}>ログアウト</button>
         </>
       )}
     </div>
