@@ -18,6 +18,7 @@ const compat = new FlatCompat({
 });
 
 export default defineConfig([{
+    ignores: ["public/**"],
     extends: compat.extends(
         "eslint:recommended",
         "plugin:react/recommended",
