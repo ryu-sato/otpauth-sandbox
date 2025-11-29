@@ -4,7 +4,7 @@ interface UserFormProps {
   onUserCreated?: (user: { id: string; password: string }) => void;
 }
 
-const UserCreateForm: React.FC<UserFormProps> = ({ onUserCreated }) => {
+const UserNewForm: React.FC<UserFormProps> = ({ onUserCreated }) => {
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
@@ -13,7 +13,7 @@ const UserCreateForm: React.FC<UserFormProps> = ({ onUserCreated }) => {
     e.preventDefault();
     setMessage('');
     try {
-      const res = await fetch('/api/create-user', {
+      const res = await fetch('/api/user/new', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, password }),
@@ -51,4 +51,4 @@ const UserCreateForm: React.FC<UserFormProps> = ({ onUserCreated }) => {
   );
 };
 
-export default UserCreateForm;
+export default UserNewForm;

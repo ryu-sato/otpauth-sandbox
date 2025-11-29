@@ -29,10 +29,10 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, "..", 'public', 'index.html'));
 });
 
-app.post('/api/create-user', async (req, res) => {
+app.post('/api/user/new', async (req, res) => {
   const { id, password } = req.body;
   const authService = new AuthService();
-  const result = await authService.createUser(id, password);
+  const result = await authService.createNewUser(id, password);
   if (result.success) {
     res.json({ success: true });
   } else {

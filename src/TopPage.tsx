@@ -1,6 +1,6 @@
 import React from 'react';
 import { HashRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import UserCreateForm from './auth/UserCreateForm';
+import UserNewForm from './auth/UserNewForm';
 import LoginForm from './auth/LoginForm';
 import UserProfile from './UserProfile';
 import UserProfileEditForm from './UserProfileEditForm';
@@ -24,13 +24,13 @@ const TopPageContent: React.FC = () => {
         <Route path="/" element={
           <>
             <h1>OTP Auth Sandbox</h1>
-            <button style={{ margin: '1rem', width: '80%' }} onClick={() => navigate('/create')}>ユーザー作成</button>
+            <button style={{ margin: '1rem', width: '80%' }} onClick={() => navigate('/user/new')}>ユーザー作成</button>
             <button style={{ margin: '1rem', width: '80%' }} onClick={() => navigate('/login')}>ログイン</button>
           </>
         } />
-        <Route path="/create" element={
+        <Route path="/user/new" element={
           <>
-            <UserCreateForm onUserCreated={() => navigate('/')} />
+            <UserNewForm onUserCreated={() => navigate('/')} />
             <button style={{ marginTop: 16 }} onClick={() => navigate('/')}>戻る</button>
           </>
         } />

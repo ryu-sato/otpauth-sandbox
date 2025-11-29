@@ -42,7 +42,7 @@ export class AuthService {
     return { success: true };
   }
 
-  async createUser(id: string, password: string): Promise<{ success: boolean; error?: string }> {
+  async createNewUser(id: string, password: string): Promise<{ success: boolean; error?: string }> {
     if (!id || !password) {
       return { success: false, error: 'IDとパスワードは必須です' };
     }
