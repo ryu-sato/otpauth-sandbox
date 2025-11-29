@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "express": "^5.1.0",
+    "mongoose": "^9.0.0",
     "ts-node": "^10.9.2"
   }
 }
