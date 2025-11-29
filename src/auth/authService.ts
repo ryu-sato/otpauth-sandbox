@@ -28,33 +28,40 @@ export class AuthService {
   }
 
   async authenticate(id: string, password: string): Promise<AuthResult> {
-    if (this.locked) {
-      return {
-        success: false,
-        error: { type: AuthErrorType.Locked, message: 'アカウントがロックされています' },
-      };
-    }
-    if (!id || !password) {
-      return {
-        success: false,
-        error: { type: AuthErrorType.ValidationError, message: 'IDとパスワードは必須です' },
-      };
-    }
-    if (id !== this.userId || password !== this.passwordHash) {
-      this.loginAttempts++;
-      if (this.loginAttempts >= 5) {
-        this.locked = true;
+    try {
+      if (this.locked) {
         return {
           success: false,
           error: { type: AuthErrorType.Locked, message: 'アカウントがロックされています' },
         };
       }
+      if (!id || !password) {
+        return {
+          success: false,
+          error: { type: AuthErrorType.ValidationError, message: 'IDとパスワードは必須です' },
+        };
+      }
+      if (id !== this.userId || password !== this.passwordHash) {
+        this.loginAttempts++;
+        if (this.loginAttempts >= 5) {
+          this.locked = true;
+          return {
+            success: false,
+            error: { type: AuthErrorType.Locked, message: 'アカウントがロックされています' },
+          };
+        }
+        return {
+          success: false,
+          error: { type: AuthErrorType.AuthFailed, message: 'IDまたはパスワードが不正です' },
+        };
+      }
+      this.loginAttempts = 0;
+      return { success: true };
+    } catch (e: any) {
       return {
         success: false,
-        error: { type: AuthErrorType.AuthFailed, message: 'IDまたはパスワードが不正です' },
+        error: { type: AuthErrorType.SystemError, message: e.message || 'システム障害' },
       };
     }
-    this.loginAttempts = 0;
-    return { success: true };
   }
 }
