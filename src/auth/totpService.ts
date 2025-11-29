@@ -20,4 +20,12 @@ export class TOTPService {
       createdAt: new Date(),
     };
   }
+
+  async saveSecret(userId: string, secret: string, db: any): Promise<void> {
+    await db.collection('totpSecrets').insertOne({
+      userId,
+      secret,
+      createdAt: new Date(),
+    });
+  }
 }
