@@ -25,12 +25,15 @@ const LoginForm: React.FC<Props> = ({ onSuccess }) => {
     const result = await response.json();
     if (result.success) {
       setLoggedIn(true);
+      // セッションに保存
+      sessionStorage.setItem('loggedInUserId', id);
       if (onSuccess) onSuccess(id);
       // セッションタイマー開始（30分後に自動ログアウト）
       const timer = setTimeout(() => {
         setLoggedIn(false);
         setId('');
         setPassword('');
+        sessionStorage.removeItem('loggedInUserId');
       }, 30 * 60 * 1000);
       setSessionTimer(timer);
     } else {

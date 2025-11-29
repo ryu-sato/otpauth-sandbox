@@ -9,6 +9,14 @@ const TopPage: React.FC = () => {
   const [page, setPage] = useState<'top' | 'create' | 'login' | 'profile'>('top');
   const [user, setUser] = useState<IUser | null>(null);
 
+  React.useEffect(() => {
+    const userId = sessionStorage.getItem('loggedInUserId');
+    if (userId) {
+      setUser({ username: userId, email: userId + '@example.com', password: '', createdAt: new Date() } as IUser);
+      setPage('profile');
+    }
+  }, []);
+
   return (
     <div style={{ maxWidth: 500, margin: '2rem auto', padding: 20 }}>
       {page === 'top' && (
@@ -26,18 +34,14 @@ const TopPage: React.FC = () => {
       )}
       {page === 'login' && (
         <>
-          <LoginForm onSuccess={(userId) => {
-            // 仮のユーザー情報（本来はAPIから取得）
-            setUser({ username: userId, email: userId + '@example.com', password: '', createdAt: new Date() } as IUser);
-            setPage('profile');
-          }} />
+          <LoginForm />
           <button style={{ marginTop: 16 }} onClick={() => setPage('top')}>戻る</button>
         </>
       )}
       {page === 'profile' && user && (
         <>
           <UserProfile user={user} />
-          <button style={{ marginTop: 16 }} onClick={() => { setUser(null); setPage('top'); }}>ログアウト</button>
+          <button style={{ marginTop: 16 }} onClick={() => { setUser(null); setPage('top'); sessionStorage.removeItem('loggedInUserId'); }}>ログアウト</button>
         </>
       )}
     </div>
