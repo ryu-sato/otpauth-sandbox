@@ -25,23 +25,16 @@ export class AuthService {
   constructor() {}
 
   /**
-   * プロフィール編集
-   * @param token JWTトークン
+   * プロフィール編集（セッションベース認証）
    * @param username 編集対象ユーザー名
    * @param email 新しいメールアドレス
+   * @param sessionUser 編集操作を行うユーザー名（セッションから取得）
    */
-  async editProfile(token: string, username: string, email: string): Promise<{ success: boolean; error?: string }> {
-    const jwt = require('jsonwebtoken');
-    let payload: any;
-    try {
-      payload = jwt.verify(token, 'test-secret');
-    } catch (e) {
-      return { success: false, error: '認証トークンが不正です' };
-    }
+  async editProfile(username: string, email: string, sessionUser: string): Promise<{ success: boolean; error?: string }> {
     if (!username || !email) {
       return { success: false, error: 'バリデーションエラー' };
     }
-    if (payload.id !== username) {
+    if (sessionUser !== username) {
       return { success: false, error: '本人以外は編集できません' };
     }
     // 本来はDB更新処理を行う

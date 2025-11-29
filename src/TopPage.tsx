@@ -1,21 +1,22 @@
 import React from 'react';
-import { HashRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import UserCreateForm from './auth/UserCreateForm';
 import LoginForm from './auth/LoginForm';
 import UserProfile from './UserProfile';
+import UserProfileEditForm from './UserProfileEditForm';
 import { IUser } from './auth/User';
 
 const TopPageContent: React.FC = () => {
   const [user, setUser] = React.useState<IUser | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   React.useEffect(() => {
     const userId = sessionStorage.getItem('loggedInUserId');
     if (userId) {
       setUser({ username: userId, email: userId + '@example.com', password: '', createdAt: new Date() } as IUser);
-      navigate('/profile');
     }
-  }, [navigate]);
+  }, [navigate, location.pathname]);
 
   return (
     <div style={{ maxWidth: 500, margin: '2rem auto', padding: 20 }}>
@@ -46,7 +47,21 @@ const TopPageContent: React.FC = () => {
           user ? (
             <>
               <UserProfile user={user} />
+              <button style={{ marginTop: 16 }} onClick={() => navigate('/profile/edit')}>プロフィール編集</button>
               <button style={{ marginTop: 16 }} onClick={() => { setUser(null); sessionStorage.removeItem('loggedInUserId'); navigate('/'); }}>ログアウト</button>
+            </>
+          ) : (
+            <>
+              <div>未ログインです</div>
+              <button style={{ marginTop: 16 }} onClick={() => navigate('/')}>戻る</button>
+            </>
+          )
+        } />
+        <Route path="/profile/edit" element={
+          user ? (
+            <>
+              <UserProfileEditForm user={user} onSave={() => navigate('/profile')} />
+              <button style={{ marginTop: 16 }} onClick={() => navigate('/profile')}>戻る</button>
             </>
           ) : (
             <>
