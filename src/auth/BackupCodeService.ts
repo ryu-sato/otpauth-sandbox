@@ -1,6 +1,8 @@
 export class BackupCodeService {
   private codeStore: Record<string, string[]> = {};
 
+  private verifiedUsers: Set<string> = new Set();
+
   generateCodes(userId: string): string[] {
     // 8桁英数字の一意なコードを10個生成
     const codes = Array.from({ length: 10 }, () =>
@@ -16,5 +18,21 @@ export class BackupCodeService {
 
   getCodes(userId: string): string[] {
     return this.codeStore[userId] || [];
+  }
+
+  verifyCode(userId: string, code: string): boolean {
+    const codes = this.getCodes(userId);
+    const ok = codes.includes(code);
+    if (ok) {
+      this.verifiedUsers.add(userId);
+    }
+    return ok;
+  }
+
+  getRecoveryGuide(userId: string): string {
+    if (this.verifiedUsers.has(userId)) {
+      return '再設定手順: 新しいTOTPを登録してください';
+    }
+    return '';
   }
 }
