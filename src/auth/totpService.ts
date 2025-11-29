@@ -12,12 +12,14 @@ export type TOTPSecretDTO = {
 export class TOTPService {
   private failedAttempts: Record<string, number> = {};
   private users: Set<string> = new Set();
+  private auditLog: Array<{ event: string; userId: string; detail?: any }> = [];
 
   async generateSecret(userId: string): Promise<TOTPSecretDTO> {
     const secret = authenticator.generateSecret();
     const otpauth = authenticator.keyuri(userId, 'OTPAuthSandbox', secret);
     const qrCode = await qrcode.toDataURL(otpauth);
     this.users.add(userId);
+    this.auditLog.push({ event: 'generateSecret', userId });
     return {
       userId,
       secret,
@@ -40,11 +42,19 @@ export class TOTPService {
       this.users.add(userId);
       if (!valid) {
         this.failedAttempts[userId] = (this.failedAttempts[userId] || 0) + 1;
+        this.auditLog.push({ event: 'verifyCode', userId, detail: 'fail' });
+        if (this.isLocked(userId)) {
+          this.auditLog.push({ event: 'lock', userId });
+        }
       } else {
         this.failedAttempts[userId] = 0;
+        this.auditLog.push({ event: 'verifyCode', userId, detail: 'success' });
       }
     }
     return valid;
+  }
+  getAuditLog(): Array<{ event: string; userId: string; detail?: any }> {
+    return this.auditLog;
   }
   getStats(): { userCount: number; failedAttempts: Record<string, number> } {
     // 有効ユーザー数と各ユーザーの認証失敗回数を返す
