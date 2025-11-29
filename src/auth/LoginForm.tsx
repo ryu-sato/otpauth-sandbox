@@ -25,7 +25,7 @@ const LoginForm: React.FC<Props> = ({ onSuccess }) => {
       return;
     }
     // 認証APIを呼び出す
-    const response = await fetch('/api/authenticate', {
+    const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, password })

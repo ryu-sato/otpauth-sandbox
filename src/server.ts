@@ -29,19 +29,21 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, "..", 'public', 'index.html'));
 });
 
-app.post('/api/user/new', async (req, res) => {
+// ユーザー新規作成 RESTful: POST /api/users
+app.post('/api/users', async (req, res) => {
   const { id, password } = req.body;
   const authService = new AuthService();
   const result = await authService.createNewUser(id, password);
   if (result.success) {
-    res.json({ success: true });
+    res.status(201).json({ success: true });
   } else {
     const status = result.error === 'IDとパスワードは必須です' ? 400 : 500;
     res.status(status).json({ success: false, error: result.error });
   }
 });
 
-app.post('/api/authenticate', async (req, res) => {
+// 認証 RESTful: POST /api/auth/login
+app.post('/api/auth/login', async (req, res) => {
   const { id, password } = req.body;
   const authService = new AuthService();
   const result = await authService.authenticate(id, password);
@@ -52,16 +54,15 @@ app.post('/api/authenticate', async (req, res) => {
   }
 });
 
-// UserProfileEditAPI: プロフィール編集
-app.post('/api/profile/edit', async (req, res) => {
-  const authHeader = req.headers['authorization'];
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: '認証トークンが必要です' });
-  }
-  const token = authHeader.replace('Bearer ', '');
+// プロフィール編集 RESTful: PATCH /api/users/:id
+// 前提:
+// - セッションベース認証
+// - 編集操作を行うユーザー名はログインしているユーザーと同一であること
+app.patch('/api/users/:id', async (req, res) => {
   const { username, email } = req.body;
+  const userId = req.params.id;
   const authService = new AuthService();
-  const result = await authService.editProfile(token, username, email);
+  const result = await authService.editProfile(username, email, userId);
   if (result.success) {
     res.json({ success: true });
   } else {

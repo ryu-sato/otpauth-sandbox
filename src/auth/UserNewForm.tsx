@@ -13,7 +13,7 @@ const UserNewForm: React.FC<UserFormProps> = ({ onUserCreated }) => {
     e.preventDefault();
     setMessage('');
     try {
-      const res = await fetch('/api/user/new', {
+    const res = await fetch('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, password }),
