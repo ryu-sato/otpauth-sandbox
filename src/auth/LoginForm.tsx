@@ -15,6 +15,15 @@ const LoginForm: React.FC<Props> = ({ onSuccess }) => {
     e.preventDefault();
     setErrors({});
     setMessage('');
+    // まずフロント側で空欄バリデーション
+    const newErrors: { id?: string; password?: string } = {};
+    if (!id) newErrors.id = 'ユーザーIDは必須です';
+    if (!password) newErrors.password = 'パスワードは必須です';
+    if (newErrors.id || newErrors.password) {
+      setErrors(newErrors);
+      setMessage('ログインに失敗しました');
+      return;
+    }
     // 認証APIを呼び出す
     const response = await fetch('/api/authenticate', {
       method: 'POST',
@@ -41,11 +50,11 @@ const LoginForm: React.FC<Props> = ({ onSuccess }) => {
       if (result.error) {
         const newErrors: { id?: string; password?: string } = {};
         if (result.error.type === 'ValidationError') {
-          if (!id) newErrors.id = 'IDは必須です';
+          if (!id) newErrors.id = 'ユーザーIDは必須です';
           if (!password) newErrors.password = 'パスワードは必須です';
         } else if (result.error.type === 'AuthFailed') {
-          newErrors.id = 'IDまたはパスワードが不正です';
-          newErrors.password = 'IDまたはパスワードが不正です';
+          newErrors.id = 'ユーザーIDまたはパスワードが不正です';
+          newErrors.password = 'ユーザーIDまたはパスワードが不正です';
         } else if (result.error.type === 'Locked') {
           newErrors.id = 'アカウントがロックされています';
         } else if (result.error.type === 'SystemError') {

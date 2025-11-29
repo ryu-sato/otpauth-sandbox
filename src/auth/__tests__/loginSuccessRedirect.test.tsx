@@ -12,7 +12,7 @@ describe('認証成功時の画面遷移', () => {
 
   test('認証成功でonSuccessが呼ばれる', () => {
     render(<LoginForm onSuccess={mockOnSuccess} />);
-    fireEvent.change(screen.getByLabelText('ID'), { target: { value: 'user1' } });
+  fireEvent.change(screen.getByLabelText('ユーザーID'), { target: { value: 'user1' } });
     fireEvent.change(screen.getByLabelText('パスワード'), { target: { value: 'pass123' } });
     fireEvent.click(screen.getByRole('button', { name: 'ログイン' }));
     expect(mockOnSuccess).toHaveBeenCalled();

@@ -15,7 +15,7 @@ describe('システム障害時のエラー表示', () => {
         }
       }
     }
-    const service = new ErrorAuthService({ userId: 'user1', passwordHash: 'hashedpass' });
+  const service = new ErrorAuthService();
     const result = await service.authenticate('user1', 'hashedpass');
     expect(result.success).toBe(false);
     expect(result.error?.type).toBe(AuthErrorType.SystemError);
