@@ -1,5 +1,5 @@
-import React from 'react';
-import { IUser } from './auth/User';
+import React from "react";
+import { IUser } from "./auth/User";
 
 interface UserProfileProps {
   user: IUser;

@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document } from "mongoose";
 
 export interface IUser extends Document {
   username: string;
@@ -40,10 +40,10 @@ UserSchema.methods.updateProfile = async function (update: Partial<IUser>) {
 };
 
 UserSchema.methods.validateProfile = function (update: Partial<IUser>) {
-  if (update.email === '') {
-    return { success: false, error: 'メールアドレスは必須です' };
+  if (update.email === "") {
+    return { success: false, error: "メールアドレスは必須です" };
   }
   return { success: true };
 };
 
-export default mongoose.model<IUser>('User', UserSchema);
+export default mongoose.model<IUser>("User", UserSchema);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 type UserProfileEditFormProps = {
   user: {
@@ -14,12 +14,12 @@ type UserProfileEditFormProps = {
 const UserProfileEditForm: React.FC<UserProfileEditFormProps> = ({ user, onSave, loading, success }) => {
   const [username, setUsername] = useState(user.username);
   const [email, setEmail] = useState(user.email);
-  const [password, setPassword] = useState('');
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const handleSave = () => {
     if (!email) {
-      setError('メールアドレスは必須です');
+      setError("メールアドレスは必須です");
       return;
     }
     setError(null);

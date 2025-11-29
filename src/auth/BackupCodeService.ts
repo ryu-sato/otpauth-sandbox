@@ -6,7 +6,7 @@ export class BackupCodeService {
   generateCodes(userId: string): string[] {
     // 8桁英数字の一意なコードを10個生成
     const codes = Array.from({ length: 10 }, () =>
-      Math.random().toString(36).replace(/[^a-zA-Z0-9]/g, '').slice(-8).padEnd(8, '0')
+      Math.random().toString(36).replace(/[^a-zA-Z0-9]/g, "").slice(-8).padEnd(8, "0")
     );
     // 一意性担保
     return Array.from(new Set(codes));
@@ -31,14 +31,14 @@ export class BackupCodeService {
 
   getRecoveryGuide(userId: string): string {
     if (this.verifiedUsers.has(userId)) {
-      return '再設定手順: 新しいTOTPを登録してください';
+      return "再設定手順: 新しいTOTPを登録してください";
     }
-    return '';
+    return "";
   }
   getRecoveryError(userId: string): string {
     if (this.verifiedUsers.has(userId)) {
-      return '';
+      return "";
     }
-    return 'リカバリ拒否: 本人確認に失敗しました';
+    return "リカバリ拒否: 本人確認に失敗しました";
   }
 }

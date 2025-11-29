@@ -1,11 +1,11 @@
 export enum AuthErrorType {
-  ValidationError = 'ValidationError',
-  AuthFailed = 'AuthFailed',
-  Locked = 'Locked',
-  SystemError = 'SystemError',
+  ValidationError = "ValidationError",
+  AuthFailed = "AuthFailed",
+  Locked = "Locked",
+  SystemError = "SystemError",
 }
 
-import User from './User';
+import User from "./User";
 
 export type AuthError =
   | { type: AuthErrorType.ValidationError; message: string }
@@ -31,10 +31,10 @@ export class AuthService {
    */
   async editProfile(username: string, email: string, sessionUser: string): Promise<{ success: boolean; error?: string }> {
     if (!username || !email) {
-      return { success: false, error: 'バリデーションエラー' };
+      return { success: false, error: "バリデーションエラー" };
     }
     if (sessionUser !== username) {
-      return { success: false, error: '本人以外は編集できません' };
+      return { success: false, error: "本人以外は編集できません" };
     }
     // 本来はDB更新処理を行う
     // ここではダミーで成功を返す
@@ -43,20 +43,20 @@ export class AuthService {
 
   async createNewUser(id: string, password: string): Promise<{ success: boolean; error?: string }> {
     if (!id || !password) {
-      return { success: false, error: 'IDとパスワードは必須です' };
+      return { success: false, error: "IDとパスワードは必須です" };
     }
     try {
       const email = `${id}@example.com`;
-      const bcrypt = require('bcryptjs');
+      const bcrypt = require("bcryptjs");
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(password, saltRounds);
       const user = new User({ username: id, email, password: hashedPassword });
       await user.save();
       return { success: true };
     } catch (err) {
-      let errorMsg = 'ユーザー作成に失敗しました';
-      if (typeof err === 'object' && err !== null && 'code' in err && (err as any).code === 11000) {
-        errorMsg = 'IDまたはメールが既に存在します';
+      let errorMsg = "ユーザー作成に失敗しました";
+      if (typeof err === "object" && err !== null && "code" in err && (err as any).code === 11000) {
+        errorMsg = "IDまたはメールが既に存在します";
       }
       return { success: false, error: errorMsg };
     }
@@ -67,13 +67,13 @@ export class AuthService {
       if (this.locked) {
         return {
           success: false,
-          error: { type: AuthErrorType.Locked, message: 'アカウントがロックされています' },
+          error: { type: AuthErrorType.Locked, message: "アカウントがロックされています" },
         };
       }
       if (!id || !password) {
         return {
           success: false,
-          error: { type: AuthErrorType.ValidationError, message: 'IDとパスワードは必須です' },
+          error: { type: AuthErrorType.ValidationError, message: "IDとパスワードは必須です" },
         };
       }
       // Mongooseでユーザー検索
@@ -84,16 +84,16 @@ export class AuthService {
           this.locked = true;
           return {
             success: false,
-            error: { type: AuthErrorType.Locked, message: 'アカウントがロックされています' },
+            error: { type: AuthErrorType.Locked, message: "アカウントがロックされています" },
           };
         }
         return {
           success: false,
-          error: { type: AuthErrorType.AuthFailed, message: 'IDまたはパスワードが不正です' },
+          error: { type: AuthErrorType.AuthFailed, message: "IDまたはパスワードが不正です" },
         };
       }
       // パスワード照合（bcryptjsによるハッシュ比較）
-      const bcrypt = require('bcryptjs');
+      const bcrypt = require("bcryptjs");
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
         this.loginAttempts++;
@@ -101,12 +101,12 @@ export class AuthService {
           this.locked = true;
           return {
             success: false,
-            error: { type: AuthErrorType.Locked, message: 'アカウントがロックされています' },
+            error: { type: AuthErrorType.Locked, message: "アカウントがロックされています" },
           };
         }
         return {
           success: false,
-          error: { type: AuthErrorType.AuthFailed, message: 'IDまたはパスワードが不正です' },
+          error: { type: AuthErrorType.AuthFailed, message: "IDまたはパスワードが不正です" },
         };
       }
       this.loginAttempts = 0;
@@ -114,7 +114,7 @@ export class AuthService {
     } catch (e: any) {
       return {
         success: false,
-        error: { type: AuthErrorType.SystemError, message: e.message || 'システム障害' },
+        error: { type: AuthErrorType.SystemError, message: e.message || "システム障害" },
       };
     }
   }

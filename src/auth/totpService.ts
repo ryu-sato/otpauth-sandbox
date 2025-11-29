@@ -1,5 +1,5 @@
-import { authenticator } from 'otplib';
-import * as qrcode from 'qrcode';
+import { authenticator } from "otplib";
+import * as qrcode from "qrcode";
 
 
 export type TOTPSecretDTO = {
@@ -16,10 +16,10 @@ export class TOTPService {
 
   async generateSecret(userId: string): Promise<TOTPSecretDTO> {
     const secret = authenticator.generateSecret();
-    const otpauth = authenticator.keyuri(userId, 'OTPAuthSandbox', secret);
+    const otpauth = authenticator.keyuri(userId, "OTPAuthSandbox", secret);
     const qrCode = await qrcode.toDataURL(otpauth);
     this.users.add(userId);
-    this.auditLog.push({ event: 'generateSecret', userId });
+    this.auditLog.push({ event: "generateSecret", userId });
     return {
       userId,
       secret,
@@ -29,7 +29,7 @@ export class TOTPService {
   }
 
   async saveSecret(userId: string, secret: string, db: any): Promise<void> {
-    await db.collection('totpSecrets').insertOne({
+    await db.collection("totpSecrets").insertOne({
       userId,
       secret,
       createdAt: new Date(),
@@ -42,13 +42,13 @@ export class TOTPService {
       this.users.add(userId);
       if (!valid) {
         this.failedAttempts[userId] = (this.failedAttempts[userId] || 0) + 1;
-        this.auditLog.push({ event: 'verifyCode', userId, detail: 'fail' });
+        this.auditLog.push({ event: "verifyCode", userId, detail: "fail" });
         if (this.isLocked(userId)) {
-          this.auditLog.push({ event: 'lock', userId });
+          this.auditLog.push({ event: "lock", userId });
         }
       } else {
         this.failedAttempts[userId] = 0;
-        this.auditLog.push({ event: 'verifyCode', userId, detail: 'success' });
+        this.auditLog.push({ event: "verifyCode", userId, detail: "success" });
       }
     }
     return valid;

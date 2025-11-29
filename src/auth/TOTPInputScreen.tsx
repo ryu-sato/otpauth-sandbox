@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 type Props = {
   userId: string;
 };
 
 export const TOTPInputScreen: React.FC<Props> = ({ userId }) => {
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState("");
   return (
     <form>
       <label htmlFor="totp-code">TOTPコード</label>

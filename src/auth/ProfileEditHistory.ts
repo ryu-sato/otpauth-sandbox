@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
+import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IProfileEditHistory extends Document {
   userId: string;
@@ -25,6 +25,6 @@ ProfileEditHistorySchema.statics.getHistoryByUser = async function (userId: stri
 const ProfileEditHistory = mongoose.model<IProfileEditHistory, Model<IProfileEditHistory> & {
   createHistory: (args: { userId: string; before: any; after: any }) => Promise<IProfileEditHistory>;
   getHistoryByUser: (userId: string) => Promise<IProfileEditHistory[]>;
-}>('ProfileEditHistory', ProfileEditHistorySchema);
+}>("ProfileEditHistory", ProfileEditHistorySchema);
 
 export default ProfileEditHistory;
