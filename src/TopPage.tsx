@@ -48,7 +48,12 @@ const TopPageContent: React.FC = () => {
               <UserProfile user={user} />
               <button style={{ marginTop: 16 }} onClick={() => { setUser(null); sessionStorage.removeItem('loggedInUserId'); navigate('/'); }}>ログアウト</button>
             </>
-          ) : <div>未ログインです</div>
+          ) : (
+            <>
+              <div>未ログインです</div>
+              <button style={{ marginTop: 16 }} onClick={() => navigate('/')}>戻る</button>
+            </>
+          )
         } />
       </Routes>
     </div>
