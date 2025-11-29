@@ -35,4 +35,10 @@ export class BackupCodeService {
     }
     return '';
   }
+  getRecoveryError(userId: string): string {
+    if (this.verifiedUsers.has(userId)) {
+      return '';
+    }
+    return 'リカバリ拒否: 本人確認に失敗しました';
+  }
 }
