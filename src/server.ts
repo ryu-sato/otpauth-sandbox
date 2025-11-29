@@ -4,6 +4,7 @@ import { AuthService } from './auth/authService';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
 import User from './auth/User';
+import jwt from 'jsonwebtoken';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -51,6 +52,34 @@ app.post('/api/authenticate', async (req, res) => {
   }
 });
 
+// UserProfileEditAPI: プロフィール編集
+app.post('/api/profile/edit', async (req, res) => {
+  const authHeader = req.headers['authorization'];
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: '認証トークンが必要です' });
+  }
+  const token = authHeader.replace('Bearer ', '');
+  let payload: any;
+  try {
+    payload = jwt.verify(token, 'test-secret');
+  } catch (e) {
+    return res.status(401).json({ error: '認証トークンが不正です' });
+  }
+  const { username, email } = req.body;
+  if (!username || !email) {
+    return res.status(400).json({ error: 'バリデーションエラー' });
+  }
+  // 本人確認
+  if (payload.id !== username) {
+    return res.status(403).json({ error: '本人以外は編集できません' });
+  }
+  // 編集処理（ダミー）
+  // 本来はDB更新処理を行う
+  res.json({ success: true });
+});
+
 app.listen(PORT, () => {
   console.log(`Server running: http://localhost:${PORT}`);
 });
+
+export default app;
