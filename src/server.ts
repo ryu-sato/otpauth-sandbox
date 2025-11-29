@@ -3,6 +3,7 @@ import path from 'path';
 import { AuthService } from './auth/authService';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
+import User from './auth/User';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -25,6 +26,24 @@ app.use(bodyParser.json());
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, "..", 'public', 'index.html'));
+});
+
+app.post('/api/create-user', async (req, res) => {
+  const { id, password } = req.body;
+  if (!id || !password) {
+    return res.status(400).json({ success: false, error: 'IDとパスワードは必須です' });
+  }
+  try {
+    // emailはidから生成（仮）
+    const email = `${id}@example.com`;
+    const user = new User({ username: id, email, password });
+    await user.save();
+    res.json({ success: true });
+  } catch (err: any) {
+    let errorMsg = 'ユーザー作成に失敗しました';
+    if (err.code === 11000) errorMsg = 'IDまたはメールが既に存在します';
+    res.status(500).json({ success: false, error: errorMsg });
+  }
 });
 
 app.post('/api/authenticate', async (req, res) => {

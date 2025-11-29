@@ -1,6 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import LoginForm from './auth/LoginForm';
+import UserCreateForm from './auth/UserCreateForm';
 
 const root = createRoot(document.getElementById('root')!);
-root.render(<LoginForm />);
+root.render(<UserCreateForm />);
