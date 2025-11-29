@@ -19,12 +19,15 @@
   },
   "plugins": [
     "react",
-    "@typescript-eslint"
+    "@typescript-eslint",
+    "unused-imports"
   ],
   "rules": {
     "semi": ["error", "always"],
     "quotes": ["error", "double"],
-    "@typescript-eslint/no-unused-vars": ["warn", {"args": "none"}]
+    "@typescript-eslint/no-unused-vars": ["warn", {"args": "none"}],
+    "unused-imports/no-unused-imports": "error",
+    "unused-imports/no-unused-vars": ["warn", {"vars": "all", "varsIgnorePattern": "^_", "args": "after-used", "argsIgnorePattern": "^_"}]
   },
   "settings": {
     "react": {

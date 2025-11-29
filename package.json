@@ -1,9 +1,9 @@
 {
   "scripts": {
-     "build": "webpack --watch --config webpack.config.js",
-     "start": "nodemon --watch src --ext ts,tsx --exec ts-node src/server.ts",
-     "test": "jest",
-     "prepare": "husky install"
+    "build": "webpack --watch --config webpack.config.js",
+    "start": "nodemon --watch src --ext ts,tsx --exec ts-node src/server.ts",
+    "test": "jest",
+    "prepare": "husky install"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
@@ -20,6 +20,7 @@
     "bcryptjs": "^3.0.3",
     "eslint": "^9.39.1",
     "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-unused-imports": "^4.3.0",
     "html-webpack-plugin": "^5.6.5",
     "husky": "^9.1.7",
     "jest": "^30.2.0",
