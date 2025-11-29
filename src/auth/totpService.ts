@@ -28,7 +28,8 @@ export class TOTPService {
     };
   }
 
-  async saveSecret(userId: string, secret: string, db: unknown): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async saveSecret(userId: string, secret: string, db: any): Promise<void> {
     await db.collection("totpSecrets").insertOne({
       userId,
       secret,
