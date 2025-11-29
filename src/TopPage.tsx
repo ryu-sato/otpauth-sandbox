@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import UserCreateForm from './auth/UserCreateForm';
 import LoginForm from './auth/LoginForm';
 import UserProfile from './UserProfile';
@@ -56,9 +56,9 @@ const TopPageContent: React.FC = () => {
 };
 
 const TopPage: React.FC = () => (
-  <BrowserRouter>
+  <HashRouter>
     <TopPageContent />
-  </BrowserRouter>
+  </HashRouter>
 );
 
 export default TopPage;
