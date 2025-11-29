@@ -2,9 +2,21 @@ import express from 'express';
 import path from 'path';
 import { AuthService } from './auth/authService';
 import bodyParser from 'body-parser';
+import mongoose from 'mongoose';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// MongoDB接続
+const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/otpauth-sandbox';
+mongoose.connect(mongoUri)
+  .then(() => {
+    console.log('MongoDBに接続しました');
+  })
+  .catch((err) => {
+    console.error('MongoDB接続エラー:', err);
+    process.exit(1);
+  });
 
 // 静的ファイル（Reactビルド成果物）を公開
 app.use(express.static(path.join(__dirname, "..", 'public')));
