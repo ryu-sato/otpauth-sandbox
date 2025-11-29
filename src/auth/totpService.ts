@@ -28,4 +28,8 @@ export class TOTPService {
       createdAt: new Date(),
     });
   }
+
+  verifyCode(secret: string, code: string): boolean {
+    return authenticator.check(code, secret);
+  }
 }
