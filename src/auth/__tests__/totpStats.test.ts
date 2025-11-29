@@ -1,7 +1,6 @@
 // Node.js環境でTextEncoder未定義対策
 import { TextEncoder } from "util";
 if (typeof global.TextEncoder === "undefined") {
-  // @ts-ignore
   global.TextEncoder = TextEncoder;
 }
 import { TOTPService } from "../totpService";

@@ -1,5 +1,6 @@
 import { TOTPService } from "../totpService";
 // Node.js環境でTextEncoder未定義対策
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 global.TextEncoder = require("util").TextEncoder;
 
 describe("TOTPService", () => {

@@ -3,7 +3,7 @@ export class BackupCodeService {
 
   private verifiedUsers: Set<string> = new Set();
 
-  generateCodes(userId: string): string[] {
+  generateCodes(_userId: string): string[] {
     // 8桁英数字の一意なコードを10個生成
     const codes = Array.from({ length: 10 }, () =>
       Math.random().toString(36).replace(/[^a-zA-Z0-9]/g, "").slice(-8).padEnd(8, "0")

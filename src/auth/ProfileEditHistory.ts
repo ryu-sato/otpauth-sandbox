@@ -2,8 +2,8 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IProfileEditHistory extends Document {
   userId: string;
-  before: Record<string, any>;
-  after: Record<string, any>;
+  before: Record<string, unknown>;
+  after: Record<string, unknown>;
   editedAt: Date;
 }
 
@@ -14,7 +14,7 @@ const ProfileEditHistorySchema: Schema = new Schema({
   editedAt: { type: Date, default: Date.now },
 });
 
-ProfileEditHistorySchema.statics.createHistory = async function ({ userId, before, after }: { userId: string; before: any; after: any }) {
+ProfileEditHistorySchema.statics.createHistory = async function ({ userId, before, after }: { userId: string; before: unknown; after: unknown }) {
   return await this.create({ userId, before, after });
 };
 
@@ -23,7 +23,7 @@ ProfileEditHistorySchema.statics.getHistoryByUser = async function (userId: stri
 };
 
 const ProfileEditHistory = mongoose.model<IProfileEditHistory, Model<IProfileEditHistory> & {
-  createHistory: (args: { userId: string; before: any; after: any }) => Promise<IProfileEditHistory>;
+  createHistory: (args: { userId: string; before: unknown; after: unknown }) => Promise<IProfileEditHistory>;
   getHistoryByUser: (userId: string) => Promise<IProfileEditHistory[]>;
 }>("ProfileEditHistory", ProfileEditHistorySchema);
 

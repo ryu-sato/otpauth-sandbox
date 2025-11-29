@@ -2,7 +2,8 @@
  * @jest-environment node
  */
 // Node.js v20+ TextEncoder workaround
-(global as any).TextEncoder = require("util").TextEncoder;
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+(global as unknown).TextEncoder = require("util").TextEncoder;
 
 import request from "supertest";
 import app from "../../server";

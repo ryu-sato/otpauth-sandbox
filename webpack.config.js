@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+/* eslint-enable @typescript-eslint/no-require-imports */
 
 module.exports = {
   entry: "./src/index.tsx",
@@ -28,3 +30,4 @@ module.exports = {
   mode: "development",
   stats: "errors-only",
 };
+

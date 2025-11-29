@@ -4,7 +4,7 @@ type Props = {
   userId: string;
 };
 
-export const TOTPInputScreen: React.FC<Props> = ({ userId }) => {
+export const TOTPInputScreen: React.FC<Props> = () => {
   const [code, setCode] = useState("");
   return (
     <form>

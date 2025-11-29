@@ -12,7 +12,7 @@ export type TOTPSecretDTO = {
 export class TOTPService {
   private failedAttempts: Record<string, number> = {};
   private users: Set<string> = new Set();
-  private auditLog: Array<{ event: string; userId: string; detail?: any }> = [];
+  private auditLog: Array<{ event: string; userId: string; detail?: unknown }> = [];
 
   async generateSecret(userId: string): Promise<TOTPSecretDTO> {
     const secret = authenticator.generateSecret();
@@ -28,7 +28,7 @@ export class TOTPService {
     };
   }
 
-  async saveSecret(userId: string, secret: string, db: any): Promise<void> {
+  async saveSecret(userId: string, secret: string, db: unknown): Promise<void> {
     await db.collection("totpSecrets").insertOne({
       userId,
       secret,
@@ -53,7 +53,7 @@ export class TOTPService {
     }
     return valid;
   }
-  getAuditLog(): Array<{ event: string; userId: string; detail?: any }> {
+  getAuditLog(): Array<{ event: string; userId: string; detail?: unknown }> {
     return this.auditLog;
   }
   getStats(): { userCount: number; failedAttempts: Record<string, number> } {

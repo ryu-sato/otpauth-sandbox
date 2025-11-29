@@ -8,7 +8,7 @@ const LoginForm: React.FC<Props> = ({ onSuccess }) => {
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<{ id?: string; password?: string }>({});
   const [message, setMessage] = useState("");
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [, setLoggedIn] = useState(false);
   const [sessionTimer, setSessionTimer] = useState<NodeJS.Timeout | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {

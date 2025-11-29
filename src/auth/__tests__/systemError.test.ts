@@ -4,13 +4,13 @@ describe("システム障害時のエラー表示", () => {
   test("システム障害時はSystemError型で返却", async () => {
     // 障害をシミュレートするため、エラーを投げるAuthServiceを用意
     class ErrorAuthService extends AuthService {
-      async authenticate(id: string, password: string): Promise<AuthResult> {
+      async authenticate(_id: string, _password: string): Promise<AuthResult> {
         try {
           throw new Error("DB接続失敗");
-        } catch (e: any) {
+        } catch (e: unknown) {
           return {
             success: false,
-            error: { type: AuthErrorType.SystemError, message: e.message },
+            error: { type: AuthErrorType.SystemError, message: (e as Error)?.message },
           };
         }
       }

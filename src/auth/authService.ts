@@ -6,6 +6,7 @@ export enum AuthErrorType {
 }
 
 import User from "./User";
+import bcrypt from "bcryptjs";
 
 export type AuthError =
   | { type: AuthErrorType.ValidationError; message: string }
@@ -47,7 +48,6 @@ export class AuthService {
     }
     try {
       const email = `${id}@example.com`;
-      const bcrypt = require("bcryptjs");
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(password, saltRounds);
       const user = new User({ username: id, email, password: hashedPassword });
@@ -55,7 +55,7 @@ export class AuthService {
       return { success: true };
     } catch (err) {
       let errorMsg = "ユーザー作成に失敗しました";
-      if (typeof err === "object" && err !== null && "code" in err && (err as any).code === 11000) {
+      if (typeof err === "object" && err !== null && "code" in err && err.code === 11000) {
         errorMsg = "IDまたはメールが既に存在します";
       }
       return { success: false, error: errorMsg };
@@ -93,7 +93,6 @@ export class AuthService {
         };
       }
       // パスワード照合（bcryptjsによるハッシュ比較）
-      const bcrypt = require("bcryptjs");
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
         this.loginAttempts++;
@@ -111,10 +110,10 @@ export class AuthService {
       }
       this.loginAttempts = 0;
       return { success: true };
-    } catch (e: any) {
+    } catch (e: unknown) {
       return {
         success: false,
-        error: { type: AuthErrorType.SystemError, message: e.message || "システム障害" },
+        error: { type: AuthErrorType.SystemError, message: (e as Error).message || "システム障害" },
       };
     }
   }

@@ -23,11 +23,13 @@ const UserNewForm: React.FC<UserFormProps> = ({ onUserCreated }) => {
         setMessage("ユーザー作成に成功しました");
         setId("");
         setPassword("");
-        onUserCreated && onUserCreated({ id, password });
+        if (onUserCreated) {
+          onUserCreated({ id, password });
+        }
       } else {
         setMessage("ユーザー作成に失敗しました: " + data.error);
       }
-    } catch (err) {
+    } catch {
       setMessage("エラーが発生しました");
     }
   };
