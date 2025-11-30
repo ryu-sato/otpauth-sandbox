@@ -21,7 +21,7 @@ const TopPageContent: React.FC = () => {
         setUser(null);
         navigate("/");
       }
-    }, 5000); // 5秒ごと
+    }, 30000); // 30秒ごと
     return () => clearInterval(intervalId);
   }, [user, navigate]);
 

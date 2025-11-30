@@ -44,7 +44,7 @@ const UserProfileEditForm: React.FC<UserProfileEditFormProps> = ({ user, onSave,
   };
 
   return (
-    <form>
+    <form style={{ maxWidth: 400, margin: "2rem auto", padding: 20, border: "1px solid #ccc", borderRadius: 8 }}>
       <label htmlFor="username">ユーザー名</label>
       <input id="username" value={username} onChange={e => setUsername(e.target.value)} aria-label="ユーザー名" />
       <label htmlFor="email">メールアドレス</label>
