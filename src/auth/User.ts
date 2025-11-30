@@ -4,6 +4,7 @@ export interface IUser extends Document {
   username: string;
   email: string;
   password: string;
+  status: "active" | "pending";
   createdAt: Date;
   updateProfile(update: Partial<IUser>): Promise<void>;
   validateProfile(update: Partial<IUser>): { success: boolean; error?: string };
@@ -26,6 +27,11 @@ const UserSchema: Schema = new Schema({
   password: {
     type: String,
     required: true,
+  },
+  status: {
+    type: String,
+    enum: ["active", "pending"], // [TODO] pending 状態のユーザーは定期的にクリーンアップする
+    default: "active",
   },
   createdAt: {
     type: Date,

@@ -43,6 +43,17 @@ app.post("/api/users", async (req, res) => {
   }
 });
 
+// ユーザーアクティベート RESTful: POST /api/users/activate
+app.post("/api/users/activate", async (req, res) => {
+  const { username } = req.body;
+  const result = await authService.activateUser(username);
+  if (result.success) {
+    res.json({ success: true });
+  } else {
+    res.status(400).json({ success: false, error: result.error });
+  }
+});
+
 // 認証 RESTful: POST /api/auth/login
 app.post("/api/auth/login", (req, res) => {
   console.log("Login endpoint hit");

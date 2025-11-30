@@ -136,7 +136,7 @@ export class AuthService {
       const email = `${username}@example.com`;
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(password, saltRounds);
-      const user = new User({ username: username, email, password: hashedPassword });
+      const user = new User({ username: username, email, password: hashedPassword, status: "pending" });
       await user.save();
       return { success: true };
     } catch (err) {
@@ -145,6 +145,23 @@ export class AuthService {
         errorMsg = "IDまたはメールが既に存在します";
       }
       return { success: false, error: errorMsg };
+    }
+  }
+
+  async activateUser(username: string): Promise<{ success: boolean; error?: string }> {
+    if (!username) {
+      return { success: false, error: "ユーザー名は必須です" };
+    }
+    try {
+      const user = await User.findOne({ username });
+      if (!user) {
+        return { success: false, error: "ユーザーが存在しません" };
+      }
+      user.status = "active";
+      await user.save();
+      return { success: true };
+    } catch {
+      return { success: false, error: "ユーザーアクティベートに失敗しました" };
     }
   }
 
