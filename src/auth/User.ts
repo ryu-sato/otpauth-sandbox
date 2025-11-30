@@ -5,6 +5,7 @@ export interface IUser extends Document {
   email: string;
   password: string;
   status: "active" | "pending";
+  totpSecret: string;
   createdAt: Date;
   updateProfile(update: Partial<IUser>): Promise<void>;
   validateProfile(update: Partial<IUser>): { success: boolean; error?: string };
@@ -32,6 +33,10 @@ const UserSchema: Schema = new Schema({
     type: String,
     enum: ["active", "pending"], // [TODO] pending 状態のユーザーは定期的にクリーンアップする
     default: "active",
+  },
+  totpSecret: {
+    type: String,
+    default: "",
   },
   createdAt: {
     type: Date,

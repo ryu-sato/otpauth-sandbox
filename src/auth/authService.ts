@@ -4,6 +4,7 @@ import passport from "passport";
 import session from "express-session";
 import { Strategy as LocalStrategy } from "passport-local";
 import type { Express, Request, Response, NextFunction } from "express";
+import { TOTPService } from "./totpService";
 
 export enum AuthErrorType {
   ValidationError = "ValidationError",
@@ -128,23 +129,30 @@ export class AuthService {
     return { success: true };
   }
 
-  async createNewUser(username: string, password: string): Promise<{ success: boolean; error?: string }> {
+  async createNewUser(username: string, password: string): Promise<{ success: boolean; error?: string, qrCode: string | null }> {
     if (!username || !password) {
-      return { success: false, error: "ユーザー名とパスワードは必須です" };
+      return { success: false, error: "ユーザー名とパスワードは必須です", qrCode: null };
     }
     try {
       const email = `${username}@example.com`;
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(password, saltRounds);
-      const user = new User({ username: username, email, password: hashedPassword, status: "pending" });
+      const { secret, qrCode } = await new TOTPService().generateSecret(username);
+      const user = new User({
+        username: username,
+        email,
+        password: hashedPassword,
+        status: "pending",
+        totpSecret: secret,
+      });
       await user.save();
-      return { success: true };
+      return { success: true, qrCode };
     } catch (err) {
       let errorMsg = "ユーザー作成に失敗しました";
       if (typeof err === "object" && err !== null && "code" in err && err.code === 11000) {
         errorMsg = "IDまたはメールが既に存在します";
       }
-      return { success: false, error: errorMsg };
+      return { success: false, error: errorMsg, qrCode: null };
     }
   }
 
