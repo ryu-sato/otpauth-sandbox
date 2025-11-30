@@ -104,6 +104,30 @@ app.patch("/api/users/:username",
   }
 });
 
+app.post("/api/auth/verify-totp", authService.requireLogin, async (req, res) => {
+  const { totpCode } = req.body;
+  const result = await authService.verifyTotpCode(req.user!.username, totpCode);
+  if (result.success) {
+    if (req.session?.passport?.user == null) {
+      return res.status(500).json({ error: "セッション情報が見つかりません" });
+    }
+    console.log("session before elevating: ", req.session);
+    // セッションに記録しているユーザー情報を更新して、認証レベルを昇格
+    req.session.passport.user.auth_level = "elevated";
+    req.session.passport.user.elevated_at = new Date();
+    req.session.save(function(err) {
+      if (err) {
+        console.error("セッション保存エラー:", err);
+        return res.status(500).json({ error: "セッションの保存に失敗しました" });
+      }
+      console.log("セッションが正常に保存されました");
+    });
+    res.json({ success: true });
+  } else {
+    res.status(400).json({ error: result.error });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running: http://localhost:${PORT}`);
 });
