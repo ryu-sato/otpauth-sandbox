@@ -1,3 +1,4 @@
+import { totp } from "otplib";
 import React, { useState } from "react";
 type Props = {
   onSuccess?: (userId: string) => void;
@@ -6,7 +7,8 @@ type Props = {
 const LoginForm: React.FC<Props> = ({ onSuccess }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState<{ username?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ username?: string; password?: string, totpCode?: string }>({});
+  const [totpCode, setTotpCode] = useState("");
   const [message, setMessage] = useState("");
   const [, setLoggedIn] = useState(false);
   const [sessionTimer, setSessionTimer] = useState<NodeJS.Timeout | null>(null);
@@ -16,10 +18,11 @@ const LoginForm: React.FC<Props> = ({ onSuccess }) => {
     setErrors({});
     setMessage("");
     // まずフロント側で空欄バリデーション
-    const newErrors: { username?: string; password?: string } = {};
+    const newErrors: { username?: string; password?: string, totpCode?: string } = {};
     if (!username) newErrors.username = "ユーザー名は必須です";
     if (!password) newErrors.password = "パスワードは必須です";
-    if (newErrors.username || newErrors.password) {
+    if (!totpCode) newErrors.totpCode = "TOTPコードは必須です";
+    if (newErrors.username || newErrors.password || newErrors.totpCode) {
       setErrors(newErrors);
       setMessage("ログインに失敗しました");
       return;
@@ -28,7 +31,7 @@ const LoginForm: React.FC<Props> = ({ onSuccess }) => {
     const response = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password })
+      body: JSON.stringify({ username, password, totpCode })
     });
     const result = await response.json();
     if (result.success) {
@@ -86,6 +89,12 @@ const LoginForm: React.FC<Props> = ({ onSuccess }) => {
           <input type="password" value={password} onChange={e => setPassword(e.target.value)} required style={{ width: "100%" }} />
         </label>
         {errors.password && <div style={{ color: "red", marginTop: 4 }}>{errors.password}</div>}
+      </div>
+      <div style={{ marginBottom: 16 }}>
+        <label>TOTPコード<br />
+          <input type="text" value={totpCode} onChange={e => setTotpCode(e.target.value)} required style={{ width: "100%" }} />
+        </label>
+        {errors.totpCode && <div style={{ color: "red", marginTop: 4 }}>{errors.totpCode}</div>}
       </div>
       <button type="submit">ログイン</button>
       {message && <div style={{ marginTop: 16, color: message.includes("成功") ? "green" : "red" }}>{message}</div>}

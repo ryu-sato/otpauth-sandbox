@@ -28,7 +28,7 @@ export type AuthResult = {
   user?: InstanceType<typeof User> | undefined;
 };
 
-export type AfterAuthenticatedCallback = (
+export type AfterPasswordAuthenticatedCallback = (
   err: null,
   user: IUser | undefined,
   info?: { message: string }
@@ -41,7 +41,7 @@ export class AuthService {
   constructor() {}
 
   initializeWithExpress(app: Express) {
-    passport.use(new LocalStrategy(async (username, password, cb: AfterAuthenticatedCallback) => {
+    passport.use(new LocalStrategy(async (username, password, cb: AfterPasswordAuthenticatedCallback) => {
       console.log("ローカルストラテジー実行:", username);
       const authService = new AuthService();
       const authResult = await authService.authenticate(username, password);
@@ -81,16 +81,31 @@ export class AuthService {
   }
 
   // ログイン用のミドルウェア
+  // 注意: このミドルウェアを使う前に Express アプリで express-session を必ず有効化してください。
+  // 例:
+  // import session from "express-session";
+  // app.use(session({ secret: "your-secret", resave: false, saveUninitialized: false }));
   loginHandler(req: Request, res: Response, next: NextFunction) {
-    const callback: AfterAuthenticatedCallback = (err, user, info) => {
+    const callback: AfterPasswordAuthenticatedCallback = (err, user, info) => {
       if (err || !user) {
         console.log("ログイン失敗:", info?.message || "認証に失敗しました");
         return res.status(401).json({ error: info?.message || "認証に失敗しました" });
       }
-      // 注意: このミドルウェアを使う前に Express アプリで express-session を必ず有効化してください。
-      // 例:
-      // import session from "express-session";
-      // app.use(session({ secret: "your-secret", resave: false, saveUninitialized: false }));
+
+      // TOTPコードの検証
+      const { totpCode } = req.body;
+      if (!totpCode) {
+        console.log("ログイン失敗: TOTPコードが提供されていません");
+        return res.status(400).json({ error: "TOTPコードは必須です" });
+      }
+      const totpService = new TOTPService();
+      const isValidTotp = totpService.verifyCode(user.totpSecret, totpCode, user.username);
+      if (!isValidTotp) {
+        console.log("ログイン失敗: 不正なTOTPコード", user.username);
+        return res.status(401).json({ error: "不正なTOTPコードです" });
+      }
+
+      // ログイン成功
       req.logIn(user, (err) => {
         if (err) {
           console.log("ログイン処理エラー:", err);
