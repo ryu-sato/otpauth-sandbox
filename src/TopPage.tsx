@@ -15,8 +15,25 @@ const TopPageContent: React.FC = () => {
     const userId = sessionStorage.getItem("loggedInUserId");
     if (userId) {
       setUser({ username: userId, email: userId + "@example.com", password: "", createdAt: new Date() } as IUser);
+    } else {
+      setUser(null); // セッションが消失していたら未ログイン状態にする
     }
   }, [navigate, location.pathname]);
+
+  React.useEffect(() => {
+    if (!user) return;
+    const intervalId = setInterval(async () => {
+      try {
+        const res = await fetch("/api/auth/health");
+        if (!res.ok) throw new Error("health check failed");
+      } catch (e) {
+        setUser(null);
+        sessionStorage.removeItem("loggedInUserId");
+        navigate("/");
+      }
+    }, 5000); // 5秒ごと
+    return () => clearInterval(intervalId);
+  }, [user, navigate]);
 
   return (
     <div style={{ maxWidth: 500, margin: "2rem auto", padding: 20 }}>

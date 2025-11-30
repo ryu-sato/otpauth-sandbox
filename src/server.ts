@@ -52,6 +52,11 @@ app.post("/api/auth/login", (req, res) => {
   });
 });
 
+// 認証ヘルスチェック RESTful: GET /api/auth/health
+app.get("/api/auth/health", authService.requireLogin, (req, res) => {
+  res.json({ authenticated: true, user: req.user });
+});
+
 // プロフィール編集 RESTful: PATCH /api/users/:username
 // 前提:
 // - セッションベース認証
