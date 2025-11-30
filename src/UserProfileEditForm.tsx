@@ -27,7 +27,7 @@ const UserProfileEditForm: React.FC<UserProfileEditFormProps> = ({ user, onSave,
     const response = await fetch(`/api/users/${username}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: username, email, password })
+      body: JSON.stringify({ username, email, password })
     });
     if (!response.ok) {
       const data = await response.json();

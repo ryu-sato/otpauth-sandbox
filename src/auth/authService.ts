@@ -101,6 +101,11 @@ export class AuthService {
 
   requireLogin(req: Request, res: Response, next: NextFunction) {
     if (!req.isAuthenticated || !req.isAuthenticated()) {
+      console.log("requireLogin: User is not authenticated");
+      return res.status(401).json({ error: "未認証です" });
+    }
+    if (!req.user) {
+      console.log("requireLogin: req.user is undefined");
       return res.status(401).json({ error: "未認証です" });
     }
     next();

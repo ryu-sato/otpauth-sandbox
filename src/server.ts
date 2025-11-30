@@ -3,6 +3,7 @@ import path from "path";
 import { AuthService } from "./auth/authService";
 import bodyParser from "body-parser";
 import mongoose from "mongoose";
+import { IUser } from "./auth/User";
 
 const authService = new AuthService();
 
@@ -51,13 +52,14 @@ app.post("/api/auth/login", (req, res) => {
   });
 });
 
-// プロフィール編集 RESTful: PATCH /api/users/:id
+// プロフィール編集 RESTful: PATCH /api/users/:username
 // 前提:
 // - セッションベース認証
 // - 編集操作を行うユーザー名はログインしているユーザーと同一であること
-app.patch("/api/users/:id", authService.requireLogin, async (req, res) => {
+app.patch("/api/users/:username", authService.requireLogin, async (req, res) => {
+  console.log("Edit profile endpoint hit");
   const { username, email } = req.body;
-  const userId = req.params.id;
+  const userId = (req.user as IUser).username;
   const result = await authService.editProfile(username, email, userId);
   if (result.success) {
     res.json({ success: true });
