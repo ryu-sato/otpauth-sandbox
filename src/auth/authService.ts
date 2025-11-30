@@ -1,12 +1,12 @@
+import User from "./User";
+import bcrypt from "bcryptjs";
+
 export enum AuthErrorType {
   ValidationError = "ValidationError",
   AuthFailed = "AuthFailed",
   Locked = "Locked",
   SystemError = "SystemError",
 }
-
-import User from "./User";
-import bcrypt from "bcryptjs";
 
 export type AuthError =
   | { type: AuthErrorType.ValidationError; message: string }
@@ -17,6 +17,7 @@ export type AuthError =
 export type AuthResult = {
   success: boolean;
   error?: AuthError;
+  user?: Express.User;
 };
 
 export class AuthService {
@@ -109,7 +110,7 @@ export class AuthService {
         };
       }
       this.loginAttempts = 0;
-      return { success: true };
+      return { success: true, user: user };
     } catch (e: unknown) {
       return {
         success: false,

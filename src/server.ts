@@ -3,6 +3,7 @@ import path from "path";
 import { AuthService } from "./auth/authService";
 import bodyParser from "body-parser";
 import mongoose from "mongoose";
+import { requireLogin } from "./auth/authMiddleware";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -56,7 +57,7 @@ app.post("/api/auth/login", async (req, res) => {
 // 前提:
 // - セッションベース認証
 // - 編集操作を行うユーザー名はログインしているユーザーと同一であること
-app.patch("/api/users/:id", async (req, res) => {
+app.patch("/api/users/:id", requireLogin, async (req, res) => {
   const { username, email } = req.body;
   const userId = req.params.id;
   const authService = new AuthService();
@@ -64,10 +65,7 @@ app.patch("/api/users/:id", async (req, res) => {
   if (result.success) {
     res.json({ success: true });
   } else {
-    // エラー内容に応じてステータスを返す
-    if (result.error === "認証トークンが不正です") {
-      res.status(401).json({ error: result.error });
-    } else if (result.error === "バリデーションエラー") {
+    if (result.error === "バリデーションエラー") {
       res.status(400).json({ error: result.error });
     } else if (result.error === "本人以外は編集できません") {
       res.status(403).json({ error: result.error });
