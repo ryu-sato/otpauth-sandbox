@@ -5,6 +5,8 @@ import session from "express-session";
 import { Strategy as LocalStrategy } from "passport-local";
 import type { Express, Request, Response, NextFunction } from "express";
 import { TOTPService } from "./totpService";
+import crypto from "crypto";
+import UserRegistrationRequest from "./UserRegistrationRequest";
 
 export enum AuthErrorType {
   ValidationError = "ValidationError",
@@ -129,6 +131,29 @@ export class AuthService {
     return { success: true };
   }
 
+  async requestUserRegistration(username: string, password: string) {
+    if (!username || !password) {
+      return { success: false, error: "IDとパスワードは必須です" };
+    }
+
+    const sessionId = crypto.randomBytes(32).toString("base64url");
+    const { secret } = await new TOTPService().generateSecret(username);
+    try {
+      const userRegRequest = new UserRegistrationRequest({
+        sessionId,
+        username,
+        email: `${username}@example.com`,
+        password,
+        totpSecret: secret,
+      });
+      await userRegRequest.save();
+      return { success: true, sessionId };
+    }
+    catch (err) {
+      return { success: false, error: "ユーザー登録リクエストの作成に失敗しました" };
+    }
+  }
+
   async createNewUser(username: string, password: string): Promise<{ success: boolean; error?: string, qrCode: string | null }> {
     if (!username || !password) {
       return { success: false, error: "ユーザー名とパスワードは必須です", qrCode: null };
@@ -142,7 +167,6 @@ export class AuthService {
         username: username,
         email,
         password: hashedPassword,
-        status: "pending",
         totpSecret: secret,
       });
       await user.save();
@@ -153,23 +177,6 @@ export class AuthService {
         errorMsg = "IDまたはメールが既に存在します";
       }
       return { success: false, error: errorMsg, qrCode: null };
-    }
-  }
-
-  async activateUser(username: string): Promise<{ success: boolean; error?: string }> {
-    if (!username) {
-      return { success: false, error: "ユーザー名は必須です" };
-    }
-    try {
-      const user = await User.findOne({ username });
-      if (!user) {
-        return { success: false, error: "ユーザーが存在しません" };
-      }
-      user.status = "active";
-      await user.save();
-      return { success: true };
-    } catch {
-      return { success: false, error: "ユーザーアクティベートに失敗しました" };
     }
   }
 

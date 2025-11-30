@@ -31,26 +31,21 @@ app.get("/", (_, res) => {
   res.sendFile(path.join(__dirname, "..", "public", "index.html"));
 });
 
-// ユーザー新規作成 RESTful: POST /api/users
-app.post("/api/users", async (req, res) => {
+// ユーザー新規作成 RESTful: POST /api/user_registration_requests
+app.post("/api/user_registration_requests", async (req, res) => {
   const { username, password } = req.body;
-  const result = await authService.createNewUser(username, password);
+  const result = await authService.requestUserRegistration(username, password);
   if (result.success) {
+    res.cookie("registration_session", result.sessionId, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 30 * 60 * 1000 // 30分
+    });
     res.status(201).json({ success: true });
   } else {
     const status = result.error === "IDとパスワードは必須です" ? 400 : 500;
     res.status(status).json({ success: false, error: result.error });
-  }
-});
-
-// ユーザーアクティベート RESTful: POST /api/users/activate
-app.post("/api/users/activate", async (req, res) => {
-  const { username } = req.body;
-  const result = await authService.activateUser(username);
-  if (result.success) {
-    res.json({ success: true });
-  } else {
-    res.status(400).json({ success: false, error: result.error });
   }
 });
 
@@ -59,7 +54,7 @@ app.post("/api/auth/login", (req, res) => {
   console.log("Login endpoint hit");
   authService.loginHandler(req, res, () => {
     console.log("ログイン成功レスポンス送信");
-    return res.json({ success: true, user: req.user });
+    res.json({ success: true, user: req.user });
   });
 });
 
