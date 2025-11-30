@@ -47,7 +47,7 @@ const UserProfileEditForm: React.FC<UserProfileEditFormProps> = ({ user, onSave,
     <form style={{ maxWidth: 400, margin: "2rem auto", padding: 20, border: "1px solid #ccc", borderRadius: 8 }}>
       <div style={{ marginBottom: 16 }}>
         <label htmlFor="username">ユーザー名</label>
-        <input id="username" value={username} onChange={e => setUsername(e.target.value)} aria-label="ユーザー名" />
+        <input id="username" value={username} readOnly aria-label="ユーザー名" />
       </div>
       <div style={{ marginBottom: 16 }}>
         <label htmlFor="email">メールアドレス</label>
