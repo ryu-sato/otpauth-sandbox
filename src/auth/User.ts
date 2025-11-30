@@ -1,11 +1,14 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-export interface IUser extends Document {
+export interface IUserSchema {
   username: string;
   email: string;
   password: string;
   totpSecret: string;
   createdAt: Date;
+}
+
+export interface IUser extends Document, IUserSchema {
   updateProfile(update: Partial<IUser>): Promise<void>;
   validateProfile(update: Partial<IUser>): { success: boolean; error?: string };
 }

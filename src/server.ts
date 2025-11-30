@@ -3,7 +3,6 @@ import path from "path";
 import { AuthService } from "./auth/authService";
 import bodyParser from "body-parser";
 import mongoose from "mongoose";
-import { IUser } from "./auth/User";
 import cookieParser from "cookie-parser";
 
 const authService = new AuthService();
@@ -84,10 +83,13 @@ app.get("/api/auth/health", authService.requireLogin, (req, res) => {
 });
 
 // プロフィール編集 RESTful: PATCH /api/users/:username
-app.patch("/api/users/:username", authService.requireLogin, async (req, res) => {
+app.patch("/api/users/:username",
+  authService.requireLogin,
+  authService.requireHighLevelAuth
+, async (req, res) => {
   console.log("Edit profile endpoint hit");
   const { username, email } = req.body;
-  const userId = (req.user as IUser).username;
+  const userId = req.user!.username;
   const result = await authService.editProfile(username, email, userId);
   if (result.success) {
     res.json({ success: true });

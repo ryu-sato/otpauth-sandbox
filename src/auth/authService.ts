@@ -1,4 +1,4 @@
-import User, { IUser } from "./User";
+import User from "./User";
 import bcrypt from "bcryptjs";
 import passport from "passport";
 import session from "express-session";
@@ -8,6 +8,8 @@ import { TOTPService } from "./totpService";
 import crypto from "crypto";
 import UserRegistrationRequest from "./UserRegistrationRequest";
 import AES from "./aes";
+import { IUserSchema } from "./User";
+import { SessionUser } from "./SessionUser";
 
 export enum AuthErrorType {
   ValidationError = "ValidationError",
@@ -22,15 +24,21 @@ export type AuthError =
   | { type: AuthErrorType.Locked; message: string }
   | { type: AuthErrorType.SystemError; message: string };
 
-export type AuthResult = {
-  success: boolean;
-  error?: AuthError;
-  user?: InstanceType<typeof User> | undefined;
-};
+export type AuthSuccess = {
+  success: true;
+  user: IUserSchema;
+}
+
+export type AuthFailure = {
+  success: false;
+  error: AuthError;
+}
+
+export type AuthResult = AuthSuccess | AuthFailure;
 
 export type AfterPasswordAuthenticatedCallback = (
   err: null,
-  user: IUser | undefined,
+  user: SessionUser | undefined,
   info?: { message: string }
 ) => void;
 
@@ -51,13 +59,16 @@ export class AuthService {
         return cb(null, undefined, { message });
       }
       console.log("認証成功:", authResult.user);
-      return cb(null, authResult.user);
-    }));
 
-    // セッション管理(express-session)
-    type SessionUser = {
-      username: string;
-    };
+      const sessionUser: SessionUser = {
+        ...(authResult.user),
+        login_time: new Date(),
+        auth_level: "basic",
+        elevated_at: null,
+      };
+      console.log("sessionUser:", sessionUser);
+      return cb(null, sessionUser);
+    }));
 
     app.use(session({
       secret: "keyboard cat",
@@ -68,14 +79,15 @@ export class AuthService {
 
     passport.serializeUser(function(user, cb) {
       process.nextTick(function() {
-        cb(null, { username: user.username } as SessionUser);
+        console.log("serializeUser:", user);
+        cb(null, user);
       });
     });
 
     passport.deserializeUser(function(sessionUser: SessionUser, cb) {
       process.nextTick(async function() {
-        const user = await User.findOne({ username: sessionUser.username });
-        return cb(null, user);
+        console.log("deserializeUser:", sessionUser);
+        return cb(null, sessionUser);
       });
     });
   }
@@ -91,6 +103,7 @@ export class AuthService {
         console.log("ログイン失敗:", info?.message || "認証に失敗しました");
         return res.status(401).json({ error: info?.message || "認証に失敗しました" });
       }
+      console.log("User: ", user);
 
       // TOTPコードの検証
       const { totpCode } = req.body;
@@ -127,6 +140,16 @@ export class AuthService {
     if (!req.user) {
       console.log("requireLogin: req.user is undefined");
       return res.status(401).json({ error: "未認証です" });
+    }
+    next();
+  }
+
+  requireHighLevelAuth(req: Request, res: Response, next: NextFunction) {
+    this.requireLogin(req, res, next);
+    // セッションの高レベル認証チェックをここに追加
+    if (!req.user || req.user.auth_level !== "elevated") {
+      console.log("requireHighLevelAuth: User lacks high-level auth");
+      return res.status(403).json({ error: "高レベル認証が必要です" });
     }
     next();
   }
@@ -267,7 +290,7 @@ export class AuthService {
         };
       }
       this.loginAttempts = 0;
-      return { success: true, user: user };
+      return { success: true, user: user.toObject() };
     } catch (e: unknown) {
       return {
         success: false,
