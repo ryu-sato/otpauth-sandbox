@@ -58,9 +58,6 @@ app.get("/api/auth/health", authService.requireLogin, (req, res) => {
 });
 
 // プロフィール編集 RESTful: PATCH /api/users/:username
-// 前提:
-// - セッションベース認証
-// - 編集操作を行うユーザー名はログインしているユーザーと同一であること
 app.patch("/api/users/:username", authService.requireLogin, async (req, res) => {
   console.log("Edit profile endpoint hit");
   const { username, email } = req.body;
