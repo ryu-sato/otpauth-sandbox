@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 
 interface UserFormProps {
-  onUserCreated?: (user: { id: string; password: string }) => void;
+  onUserCreated?: (user: { username: string; password: string }) => void;
 }
 
 const UserNewForm: React.FC<UserFormProps> = ({ onUserCreated }) => {
-  const [id, setId] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
 
@@ -13,18 +13,18 @@ const UserNewForm: React.FC<UserFormProps> = ({ onUserCreated }) => {
     e.preventDefault();
     setMessage("");
     try {
-    const res = await fetch("/api/users", {
+      const res = await fetch("/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, password }),
+        body: JSON.stringify({ username, password }),
       });
       const data = await res.json();
       if (data.success) {
         setMessage("ユーザー作成に成功しました");
-        setId("");
+        setUsername("");
         setPassword("");
         if (onUserCreated) {
-          onUserCreated({ id, password });
+          onUserCreated({ username, password });
         }
       } else {
         setMessage("ユーザー作成に失敗しました: " + data.error);
@@ -38,8 +38,8 @@ const UserNewForm: React.FC<UserFormProps> = ({ onUserCreated }) => {
     <form onSubmit={handleSubmit} style={{ maxWidth: 400, margin: "2rem auto", padding: 20, border: "1px solid #ccc", borderRadius: 8 }}>
       <h2>ユーザー作成</h2>
       <div style={{ marginBottom: 16 }}>
-        <label>ユーザーID<br />
-          <input type="text" value={id} onChange={e => setId(e.target.value)} required style={{ width: "100%" }} />
+        <label>ユーザー名<br />
+          <input type="text" value={username} onChange={e => setUsername(e.target.value)} required style={{ width: "100%" }} />
         </label>
       </div>
       <div style={{ marginBottom: 16 }}>

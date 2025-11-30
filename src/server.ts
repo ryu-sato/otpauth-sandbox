@@ -33,8 +33,8 @@ app.get("/", (_, res) => {
 
 // ユーザー新規作成 RESTful: POST /api/users
 app.post("/api/users", async (req, res) => {
-  const { id, password } = req.body;
-  const result = await authService.createNewUser(id, password);
+  const { username, password } = req.body;
+  const result = await authService.createNewUser(username, password);
   if (result.success) {
     res.status(201).json({ success: true });
   } else {

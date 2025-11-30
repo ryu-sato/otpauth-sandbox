@@ -128,15 +128,15 @@ export class AuthService {
     return { success: true };
   }
 
-  async createNewUser(id: string, password: string): Promise<{ success: boolean; error?: string }> {
-    if (!id || !password) {
-      return { success: false, error: "IDとパスワードは必須です" };
+  async createNewUser(username: string, password: string): Promise<{ success: boolean; error?: string }> {
+    if (!username || !password) {
+      return { success: false, error: "ユーザー名とパスワードは必須です" };
     }
     try {
-      const email = `${id}@example.com`;
+      const email = `${username}@example.com`;
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(password, saltRounds);
-      const user = new User({ username: id, email, password: hashedPassword });
+      const user = new User({ username: username, email, password: hashedPassword });
       await user.save();
       return { success: true };
     } catch (err) {
