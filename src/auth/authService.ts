@@ -145,8 +145,14 @@ export class AuthService {
   }
 
   requireHighLevelAuth(req: Request, res: Response, next: NextFunction) {
-    this.requireLogin(req, res, next);
-    // セッションの高レベル認証チェックをここに追加
+    if (!req.isAuthenticated || !req.isAuthenticated()) {
+      console.log("requireLogin: User is not authenticated");
+      return res.status(401).json({ error: "未認証です" });
+    }
+    if (!req.user) {
+      console.log("requireLogin: req.user is undefined");
+      return res.status(401).json({ error: "未認証です" });
+    }
     if (!req.user || req.user.auth_level !== "elevated") {
       console.log("requireHighLevelAuth: User lacks high-level auth");
       return res.status(403).json({ error: "高レベル認証が必要です" });
