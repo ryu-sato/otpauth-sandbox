@@ -161,7 +161,7 @@ export class AuthService {
       const userRegRequest = new UserRegistrationRequest({
         sessionId,
         username,
-        email: `${username}@example.com`,
+        email,
         password: hashedPassword,
         totpSecret: secret,
       });
