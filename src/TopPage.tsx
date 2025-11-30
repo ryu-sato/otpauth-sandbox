@@ -19,7 +19,6 @@ const TopPageContent: React.FC = () => {
         setUser(result.user); // ユーザーはログイン状態を維持
       } catch (e) {
         setUser(null);
-        navigate("/");
       }
     }, 30000); // 30秒ごと
     return () => clearInterval(intervalId);
