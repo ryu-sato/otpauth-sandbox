@@ -27,7 +27,7 @@ app.use(express.static(path.join(__dirname, "..", "public")));
 app.use(bodyParser.json());
 authService.initializeWithExpress(app);
 
-app.get("/", (req, res) => {
+app.get("/", (_, res) => {
   res.sendFile(path.join(__dirname, "..", "public", "index.html"));
 });
 
