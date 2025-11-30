@@ -17,12 +17,29 @@ const UserProfileEditForm: React.FC<UserProfileEditFormProps> = ({ user, onSave,
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!email) {
       setError("メールアドレスは必須です");
       return;
     }
     setError(null);
+
+    const response = await fetch(`/api/users/${username}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: username, email, password })
+    });
+    if (!response.ok) {
+      const data = await response.json();
+      setError(data.error || "プロフィールの更新に失敗しました");
+      return;
+    }
+    const result = await response.json();
+    if (!result.success) {
+      setError(result.error || "プロフィールの更新に失敗しました");
+      return;
+    }
+
     onSave({ username, email, password });
   };
 
