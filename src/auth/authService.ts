@@ -7,6 +7,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { TOTPService } from "./totpService";
 import crypto from "crypto";
 import UserRegistrationRequest from "./UserRegistrationRequest";
+import { totp } from "otplib";
 
 export enum AuthErrorType {
   ValidationError = "ValidationError",
@@ -136,47 +137,68 @@ export class AuthService {
       return { success: false, error: "IDとパスワードは必須です" };
     }
 
+    const email = `${username}@example.com`;
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
     const sessionId = crypto.randomBytes(32).toString("base64url");
-    const { secret } = await new TOTPService().generateSecret(username);
+    const { secret, qrCode } = await new TOTPService().generateSecret(username);
     try {
       const userRegRequest = new UserRegistrationRequest({
         sessionId,
         username,
         email: `${username}@example.com`,
-        password,
+        password: hashedPassword,
         totpSecret: secret,
       });
       await userRegRequest.save();
-      return { success: true, sessionId };
+      return { success: true, sessionId, qrCode };
     }
     catch (err) {
       return { success: false, error: "ユーザー登録リクエストの作成に失敗しました" };
     }
   }
 
-  async createNewUser(username: string, password: string): Promise<{ success: boolean; error?: string, qrCode: string | null }> {
-    if (!username || !password) {
-      return { success: false, error: "ユーザー名とパスワードは必須です", qrCode: null };
+  async createNewUser(registrationSession: string, username: string, code: string): Promise<{ success: boolean; error?: string }> {
+    if (!registrationSession || !username || !code) {
+      console.log("createNewUser: Missing parameters", { registrationSession, username, code });
+      return { success: false, error: "セッションID、ユーザー名、TOTPコードは必須です" };
     }
+
+    let userRegRequest;
     try {
-      const email = `${username}@example.com`;
-      const saltRounds = 10;
-      const hashedPassword = await bcrypt.hash(password, saltRounds);
-      const { secret, qrCode } = await new TOTPService().generateSecret(username);
+      userRegRequest = await UserRegistrationRequest.findOne({ sessionId: registrationSession, username });
+      console.log("Fetched UserRegistrationRequest:", userRegRequest);
+      if (!userRegRequest) {
+        console.log("No matching UserRegistrationRequest found");
+        return { success: false, error: "セッションが無効です" };
+      }
+    }
+    catch (err) {
+      console.log("Error fetching UserRegistrationRequest:", err);
+      return { success: false, error: "セッションの取得に失敗しました" };
+    }
+
+    const totpService = new TOTPService();
+    const isValidCode = totpService.verifyCode(userRegRequest.totpSecret, code, username);
+    if (!isValidCode) {
+      return { success: false, error: "不正なTOTPコードです" };
+    }
+
+    try {
       const user = new User({
-        username: username,
-        email,
-        password: hashedPassword,
-        totpSecret: secret,
+        username: userRegRequest.username,
+        email: userRegRequest.email,
+        password: userRegRequest.password,
+        totpSecret: userRegRequest.totpSecret,
       });
       await user.save();
-      return { success: true, qrCode };
+      return { success: true };
     } catch (err) {
       let errorMsg = "ユーザー作成に失敗しました";
       if (typeof err === "object" && err !== null && "code" in err && err.code === 11000) {
         errorMsg = "IDまたはメールが既に存在します";
       }
-      return { success: false, error: errorMsg, qrCode: null };
+      return { success: false, error: errorMsg };
     }
   }
 

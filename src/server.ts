@@ -4,6 +4,7 @@ import { AuthService } from "./auth/authService";
 import bodyParser from "body-parser";
 import mongoose from "mongoose";
 import { IUser } from "./auth/User";
+import cookieParser from "cookie-parser";
 
 const authService = new AuthService();
 
@@ -25,13 +26,14 @@ mongoose.connect(mongoUri)
 app.use(express.static(path.join(__dirname, "..", "public")));
 // JSONボディのパース
 app.use(bodyParser.json());
+app.use(cookieParser());
 authService.initializeWithExpress(app);
 
 app.get("/", (_, res) => {
   res.sendFile(path.join(__dirname, "..", "public", "index.html"));
 });
 
-// ユーザー新規作成 RESTful: POST /api/user_registration_requests
+// ユーザー新規作成要求 RESTful: POST /api/user_registration_requests
 app.post("/api/user_registration_requests", async (req, res) => {
   const { username, password } = req.body;
   const result = await authService.requestUserRegistration(username, password);
@@ -42,9 +44,27 @@ app.post("/api/user_registration_requests", async (req, res) => {
       sameSite: "strict",
       maxAge: 30 * 60 * 1000 // 30分
     });
-    res.status(201).json({ success: true });
+    res.status(201).json({ success: true, qrCode: result.qrCode });
   } else {
     const status = result.error === "IDとパスワードは必須です" ? 400 : 500;
+    res.status(status).json({ success: false, error: result.error });
+  }
+});
+
+// ユーザー新規作成 RESTful: POST /api/users
+app.post("/api/users", async (req, res) => {
+  console.log("User creation endpoint hit");
+  console.log("Requests cookies: ", req.cookies);
+  const registrationSession = req.cookies["registration_session"];
+  const { username, code } = req.body;
+  const result = await authService.createNewUser(registrationSession, username, code);
+  if (result.success) {
+    console.log("User creation successful for:", username);
+    res.clearCookie("registration_session");
+    res.status(201).json({ success: true });
+  } else {
+    const status = result.error === "セッションが無効です" || result.error === "不正なTOTPコードです" ? 400 : 500;
+    console.log("User creation failed:", result.error);
     res.status(status).json({ success: false, error: result.error });
   }
 });

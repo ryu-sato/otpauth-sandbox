@@ -47,7 +47,7 @@ const TopPageContent: React.FC = () => {
         } />
         <Route path="/user/new" element={
           <>
-            <UserNewForm onUserCreated={() => navigate("/")} />
+            <UserNewForm onUserCreated={() => navigate("/profile")} />
             <button style={{ marginTop: 16 }} onClick={() => navigate("/")}>戻る</button>
           </>
         } />
