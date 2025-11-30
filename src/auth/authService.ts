@@ -145,6 +145,8 @@ export class AuthService {
   }
 
   requireHighLevelAuth(req: Request, res: Response, next: NextFunction) {
+    const timeoutMilliSeconds = 5 * 1000;
+    // const timeoutSeconds = 5 * 60 * 1000; // 5分
     if (!req.isAuthenticated || !req.isAuthenticated()) {
       console.log("requireLogin: User is not authenticated");
       return res.status(401).json({ error: "未認証です" });
@@ -157,7 +159,44 @@ export class AuthService {
       console.log("requireHighLevelAuth: User lacks high-level auth");
       return res.status(403).json({ error: "高レベル認証が必要です" });
     }
+    if (!req.user.elevated_at || (new Date().getTime() - new Date(req.user.elevated_at).getTime()) > timeoutMilliSeconds) {
+      console.log("requireHighLevelAuth: Elevated auth has expired");
+      if (req.session?.passport?.user == null) {
+        return res.status(500).json({ error: "セッション情報が見つかりません" });
+      }
+      console.log("session before downgrading: ", req.session);
+      // 認証レベルを通常に戻す
+      req.session.passport.user.auth_level = "basic";
+      req.session.passport.user.elevated_at = null;
+      req.session.save(function(err) {
+        if (err) {
+          console.error("セッション保存エラー:", err);
+          return res.status(500).json({ error: "セッションの保存に失敗しました" });
+        }
+        console.log("セッションが正常に保存されました");
+      });
+      return res.status(403).json({ error: "高レベル認証の有効期限が切れています" });
+    }
     next();
+  }
+
+  async verifyTotpCode(username: string, totpCode: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const user = await User.findOne({ username });
+      if (!user) {
+        return { success: false, error: "ユーザーが見つかりません" };
+      }
+      const decryptedSecret = new AES().decrypt_256_gcm(user.totpSecret);
+      const totpService = new TOTPService();
+      const isValid = totpService.verifyCode(decryptedSecret, totpCode, username);
+      if (isValid) {
+        return { success: true };
+      } else {
+        return { success: false, error: "不正なTOTPコードです" };
+      }
+    } catch (err) {
+      return { success: false, error: "TOTPコードの検証に失敗しました" };
+    }
   }
 
   /**

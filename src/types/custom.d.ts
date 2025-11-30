@@ -6,4 +6,14 @@ declare global {
     // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     export interface User extends SessionUser {}
   }
+
+}
+
+// express-session のセッションデータ型定義
+declare module "express-session" {
+  interface SessionData {
+    passport: {
+      user: SessionUser;
+    }
+  }
 }
