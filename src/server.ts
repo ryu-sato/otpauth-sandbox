@@ -3,7 +3,8 @@ import path from "path";
 import { AuthService } from "./auth/authService";
 import bodyParser from "body-parser";
 import mongoose from "mongoose";
-import { requireLogin } from "./auth/authMiddleware";
+
+const authService = new AuthService();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,6 +24,7 @@ mongoose.connect(mongoUri)
 app.use(express.static(path.join(__dirname, "..", "public")));
 // JSONボディのパース
 app.use(bodyParser.json());
+authService.initializeWithExpress(app);
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "..", "public", "index.html"));
@@ -31,7 +33,6 @@ app.get("/", (req, res) => {
 // ユーザー新規作成 RESTful: POST /api/users
 app.post("/api/users", async (req, res) => {
   const { id, password } = req.body;
-  const authService = new AuthService();
   const result = await authService.createNewUser(id, password);
   if (result.success) {
     res.status(201).json({ success: true });
@@ -42,25 +43,21 @@ app.post("/api/users", async (req, res) => {
 });
 
 // 認証 RESTful: POST /api/auth/login
-app.post("/api/auth/login", async (req, res) => {
-  const { id, password } = req.body;
-  const authService = new AuthService();
-  const result = await authService.authenticate(id, password);
-  if (result.success) {
-    res.json({ success: true });
-  } else {
-    res.status(401).json({ success: false, error: result.error });
-  }
+app.post("/api/auth/login", (req, res) => {
+  console.log("Login endpoint hit");
+  authService.loginHandler(req, res, () => {
+    console.log("ログイン成功レスポンス送信");
+    return res.json({ success: true, user: req.user });
+  });
 });
 
 // プロフィール編集 RESTful: PATCH /api/users/:id
 // 前提:
 // - セッションベース認証
 // - 編集操作を行うユーザー名はログインしているユーザーと同一であること
-app.patch("/api/users/:id", requireLogin, async (req, res) => {
+app.patch("/api/users/:id", authService.requireLogin, async (req, res) => {
   const { username, email } = req.body;
   const userId = req.params.id;
-  const authService = new AuthService();
   const result = await authService.editProfile(username, email, userId);
   if (result.success) {
     res.json({ success: true });

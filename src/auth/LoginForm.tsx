@@ -4,9 +4,9 @@ type Props = {
 };
 
 const LoginForm: React.FC<Props> = ({ onSuccess }) => {
-  const [id, setId] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState<{ id?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ username?: string; password?: string }>({});
   const [message, setMessage] = useState("");
   const [, setLoggedIn] = useState(false);
   const [sessionTimer, setSessionTimer] = useState<NodeJS.Timeout | null>(null);
@@ -16,10 +16,10 @@ const LoginForm: React.FC<Props> = ({ onSuccess }) => {
     setErrors({});
     setMessage("");
     // まずフロント側で空欄バリデーション
-    const newErrors: { id?: string; password?: string } = {};
-    if (!id) newErrors.id = "ユーザーIDは必須です";
+    const newErrors: { username?: string; password?: string } = {};
+    if (!username) newErrors.username = "ユーザー名は必須です";
     if (!password) newErrors.password = "パスワードは必須です";
-    if (newErrors.id || newErrors.password) {
+    if (newErrors.username || newErrors.password) {
       setErrors(newErrors);
       setMessage("ログインに失敗しました");
       return;
@@ -28,18 +28,18 @@ const LoginForm: React.FC<Props> = ({ onSuccess }) => {
     const response = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, password })
+      body: JSON.stringify({ username, password })
     });
     const result = await response.json();
     if (result.success) {
       setLoggedIn(true);
-      sessionStorage.setItem("loggedInUserId", id);
+      sessionStorage.setItem("loggedInUserId", username);
       setMessage("ログインに成功しました");
-      if (onSuccess) onSuccess(id);
+      if (onSuccess) onSuccess(username);
       // セッションタイマー開始（30分後に自動ログアウト）
       const timer = setTimeout(() => {
         setLoggedIn(false);
-        setId("");
+        setUsername("");
         setPassword("");
         setMessage("");
         sessionStorage.removeItem("loggedInUserId");
@@ -48,17 +48,17 @@ const LoginForm: React.FC<Props> = ({ onSuccess }) => {
     } else {
       // エラー内容に応じて表示
       if (result.error) {
-        const newErrors: { id?: string; password?: string } = {};
+        const newErrors: { username?: string; password?: string } = {};
         if (result.error.type === "ValidationError") {
-          if (!id) newErrors.id = "ユーザーIDは必須です";
+          if (!username) newErrors.username = "ユーザー名は必須です";
           if (!password) newErrors.password = "パスワードは必須です";
         } else if (result.error.type === "AuthFailed") {
-          newErrors.id = "ユーザーIDまたはパスワードが不正です";
-          newErrors.password = "ユーザーIDまたはパスワードが不正です";
+          newErrors.username = "ユーザー名またはパスワードが不正です";
+          newErrors.password = "ユーザー名またはパスワードが不正です";
         } else if (result.error.type === "Locked") {
-          newErrors.id = "アカウントがロックされています";
+          newErrors.username = "アカウントがロックされています";
         } else if (result.error.type === "SystemError") {
-          newErrors.id = "システム障害が発生しました";
+          newErrors.username = "システム障害が発生しました";
         }
         setErrors(newErrors);
         setMessage("ログインに失敗しました");
@@ -76,10 +76,10 @@ const LoginForm: React.FC<Props> = ({ onSuccess }) => {
     <form onSubmit={handleSubmit} style={{ maxWidth: 400, margin: "2rem auto", padding: 20, border: "1px solid #ccc", borderRadius: 8 }}>
       <h2>ログイン</h2>
       <div style={{ marginBottom: 16 }}>
-        <label>ユーザーID<br />
-          <input type="text" value={id} onChange={e => setId(e.target.value)} required style={{ width: "100%" }} />
+        <label>ユーザー名<br />
+          <input type="text" value={username} onChange={e => setUsername(e.target.value)} required style={{ width: "100%" }} />
         </label>
-        {errors.id && <div style={{ color: "red", marginTop: 4 }}>{errors.id}</div>}
+        {errors.username && <div style={{ color: "red", marginTop: 4 }}>{errors.username}</div>}
       </div>
       <div style={{ marginBottom: 16 }}>
         <label>パスワード<br />

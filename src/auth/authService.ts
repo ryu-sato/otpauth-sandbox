@@ -1,5 +1,9 @@
-import User from "./User";
+import User, { IUser } from "./User";
 import bcrypt from "bcryptjs";
+import passport from "passport";
+import session from "express-session";
+import { Strategy as LocalStrategy } from "passport-local";
+import type { Express, Request, Response, NextFunction } from "express";
 
 export enum AuthErrorType {
   ValidationError = "ValidationError",
@@ -17,14 +21,90 @@ export type AuthError =
 export type AuthResult = {
   success: boolean;
   error?: AuthError;
-  user?: Express.User;
+  user?: InstanceType<typeof User> | undefined;
 };
+
+export type AfterAuthenticatedCallback = (
+  err: null,
+  user: IUser | undefined,
+  info?: { message: string }
+) => void;
 
 export class AuthService {
   private loginAttempts: number = 0;
   private locked: boolean = false;
 
   constructor() {}
+
+  initializeWithExpress(app: Express) {
+    passport.use(new LocalStrategy(async (username, password, cb: AfterAuthenticatedCallback) => {
+      console.log("ローカルストラテジー実行:", username);
+      const authService = new AuthService();
+      const authResult = await authService.authenticate(username, password);
+      if (!authResult.success) {
+        const message = authResult.error?.message || "認証に失敗しました";
+        console.log("認証失敗:", message, username);
+        return cb(null, undefined, { message });
+      }
+      console.log("認証成功:", authResult.user);
+      return cb(null, authResult.user);
+    }));
+
+    // セッション管理(express-session)
+    type SessionUser = {
+      username: string;
+    };
+
+    app.use(session({
+      secret: "keyboard cat",
+      resave: true,
+      saveUninitialized: false,
+    }));
+    app.use(passport.authenticate("session"));
+
+    passport.serializeUser(function(user, cb) {
+      process.nextTick(function() {
+        cb(null, { username: user.username } as SessionUser);
+      });
+    });
+
+    passport.deserializeUser(function(sessionUser: SessionUser, cb) {
+      process.nextTick(async function() {
+        const user = await User.findOne({ username: sessionUser.username });
+        return cb(null, user);
+      });
+    });
+  }
+
+  // ログイン用のミドルウェア
+  loginHandler(req: Request, res: Response, next: NextFunction) {
+    const callback: AfterAuthenticatedCallback = (err, user, info) => {
+      if (err || !user) {
+        console.log("ログイン失敗:", info?.message || "認証に失敗しました");
+        return res.status(401).json({ error: info?.message || "認証に失敗しました" });
+      }
+      // 注意: このミドルウェアを使う前に Express アプリで express-session を必ず有効化してください。
+      // 例:
+      // import session from "express-session";
+      // app.use(session({ secret: "your-secret", resave: false, saveUninitialized: false }));
+      req.logIn(user, (err) => {
+        if (err) {
+          console.log("ログイン処理エラー:", err);
+          return res.status(500).json({ error: "ログイン処理に失敗しました" });
+        }
+        console.log("ログイン成功:", user.username);
+        return res.json({ success: true, user });
+      });
+    };
+    passport.authenticate("local", callback)(req, res, next);
+  }
+
+  requireLogin(req: Request, res: Response, next: NextFunction) {
+    if (!req.isAuthenticated || !req.isAuthenticated()) {
+      return res.status(401).json({ error: "未認証です" });
+    }
+    next();
+  }
 
   /**
    * プロフィール編集（セッションベース認証）
