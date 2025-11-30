@@ -3,7 +3,7 @@ import * as qrcode from "qrcode";
 
 
 export type TOTPSecretDTO = {
-  userId: string;
+  username: string;
   secret: string;
   qrCode: string;
   createdAt: Date;
@@ -12,16 +12,16 @@ export type TOTPSecretDTO = {
 export class TOTPService {
   private failedAttempts: Record<string, number> = {};
   private users: Set<string> = new Set();
-  private auditLog: Array<{ event: string; userId: string; detail?: unknown }> = [];
+  private auditLog: Array<{ event: string; username: string; detail?: unknown }> = [];
 
-  async generateSecret(userId: string): Promise<TOTPSecretDTO> {
+  async generateSecret(username: string): Promise<TOTPSecretDTO> {
     const secret = authenticator.generateSecret();
-    const otpauth = authenticator.keyuri(userId, "OTPAuthSandbox", secret);
+    const otpauth = authenticator.keyuri(username, "OTPAuthSandbox", secret);
     const qrCode = await qrcode.toDataURL(otpauth);
-    this.users.add(userId);
-    this.auditLog.push({ event: "generateSecret", userId });
+    this.users.add(username);
+    this.auditLog.push({ event: "generateSecret", username });
     return {
-      userId,
+      username,
       secret,
       qrCode,
       createdAt: new Date(),
@@ -29,39 +29,39 @@ export class TOTPService {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async saveSecret(userId: string, secret: string, db: any): Promise<void> {
+  async saveSecret(username: string, secret: string, db: any): Promise<void> {
     await db.collection("totpSecrets").insertOne({
-      userId,
+      username,
       secret,
       createdAt: new Date(),
     });
   }
 
-  verifyCode(secret: string, code: string, userId?: string): boolean {
+  verifyCode(secret: string, code: string, username?: string): boolean {
     const valid = authenticator.check(code, secret);
-    if (userId) {
-      this.users.add(userId);
+    if (username) {
+      this.users.add(username);
       if (!valid) {
-        this.failedAttempts[userId] = (this.failedAttempts[userId] || 0) + 1;
-        this.auditLog.push({ event: "verifyCode", userId, detail: "fail" });
-        if (this.isLocked(userId)) {
-          this.auditLog.push({ event: "lock", userId });
+        this.failedAttempts[username] = (this.failedAttempts[username] || 0) + 1;
+        this.auditLog.push({ event: "verifyCode", username, detail: "fail" });
+        if (this.isLocked(username)) {
+          this.auditLog.push({ event: "lock", username });
         }
       } else {
-        this.failedAttempts[userId] = 0;
-        this.auditLog.push({ event: "verifyCode", userId, detail: "success" });
+        this.failedAttempts[username] = 0;
+        this.auditLog.push({ event: "verifyCode", username, detail: "success" });
       }
     }
     return valid;
   }
-  getAuditLog(): Array<{ event: string; userId: string; detail?: unknown }> {
+  getAuditLog(): Array<{ event: string; username: string; detail?: unknown }> {
     return this.auditLog;
   }
   getStats(): { userCount: number; failedAttempts: Record<string, number> } {
     // 有効ユーザー数と各ユーザーの認証失敗回数を返す
     const stats: Record<string, number> = {};
-    this.users.forEach(userId => {
-      stats[userId] = this.failedAttempts[userId] || 0;
+    this.users.forEach(username => {
+      stats[username] = this.failedAttempts[username] || 0;
     });
     return {
       userCount: this.users.size,
@@ -69,7 +69,7 @@ export class TOTPService {
     };
   }
 
-  isLocked(userId: string): boolean {
-    return (this.failedAttempts[userId] || 0) >= 3;
+  isLocked(username: string): boolean {
+    return (this.failedAttempts[username] || 0) >= 3;
   }
 }
