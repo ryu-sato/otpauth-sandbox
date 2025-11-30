@@ -7,7 +7,7 @@ module.exports = {
   entry: "./src/index.tsx",
   output: {
     path: path.resolve(__dirname, "public"),
-    filename: "bundle.js",
+    filename: "bundle-[fullhash].js",
   },
   resolve: {
     extensions: [".ts", ".tsx", ".js"],
@@ -23,11 +23,10 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: path.resolve(__dirname, "public/index.html"),
+      template: path.resolve(__dirname, "src", "index.html"),
       filename: "index.html",
     }),
   ],
   mode: "development",
-  stats: "errors-only",
 };
 
