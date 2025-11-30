@@ -7,7 +7,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { TOTPService } from "./totpService";
 import crypto from "crypto";
 import UserRegistrationRequest from "./UserRegistrationRequest";
-import { totp } from "otplib";
+import AES from "./aes";
 
 export enum AuthErrorType {
   ValidationError = "ValidationError",
@@ -99,7 +99,8 @@ export class AuthService {
         return res.status(400).json({ error: "TOTPコードは必須です" });
       }
       const totpService = new TOTPService();
-      const isValidTotp = totpService.verifyCode(user.totpSecret, totpCode, user.username);
+      const decryptedSecret = new AES().decrypt_256_gcm(user.totpSecret);
+      const isValidTotp = totpService.verifyCode(decryptedSecret, totpCode, user.username);
       if (!isValidTotp) {
         console.log("ログイン失敗: 不正なTOTPコード", user.username);
         return res.status(401).json({ error: "不正なTOTPコードです" });
@@ -157,13 +158,14 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     const sessionId = crypto.randomBytes(32).toString("base64url");
     const { secret, qrCode } = await new TOTPService().generateSecret(username);
+    const encryptedSecret = new AES().encrypt_256_gcm(secret);
     try {
       const userRegRequest = new UserRegistrationRequest({
         sessionId,
         username,
         email,
         password: hashedPassword,
-        totpSecret: secret,
+        totpSecret: encryptedSecret,
       });
       await userRegRequest.save();
       return { success: true, sessionId, qrCode };
@@ -194,7 +196,8 @@ export class AuthService {
     }
 
     const totpService = new TOTPService();
-    const isValidCode = totpService.verifyCode(userRegRequest.totpSecret, code, username);
+    const decryptedSecret = new AES().decrypt_256_gcm(userRegRequest.totpSecret);
+    const isValidCode = totpService.verifyCode(decryptedSecret, code, username);
     if (!isValidCode) {
       return { success: false, error: "不正なTOTPコードです" };
     }
