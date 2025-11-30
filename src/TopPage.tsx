@@ -1,5 +1,5 @@
 import React from "react";
-import { HashRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { HashRouter, Routes, Route, useNavigate } from "react-router-dom";
 import UserNewForm from "./auth/UserNewForm";
 import LoginForm from "./auth/LoginForm";
 import UserProfile from "./UserProfile";
@@ -9,26 +9,16 @@ import { IUser } from "./auth/User";
 const TopPageContent: React.FC = () => {
   const [user, setUser] = React.useState<IUser | null>(null);
   const navigate = useNavigate();
-  const location = useLocation();
 
   React.useEffect(() => {
-    const userId = sessionStorage.getItem("loggedInUserId");
-    if (userId) {
-      setUser({ username: userId, email: userId + "@example.com", password: "", createdAt: new Date() } as IUser);
-    } else {
-      setUser(null); // セッションが消失していたら未ログイン状態にする
-    }
-  }, [navigate, location.pathname]);
-
-  React.useEffect(() => {
-    if (!user) return;
     const intervalId = setInterval(async () => {
       try {
         const res = await fetch("/api/auth/health");
         if (!res.ok) throw new Error("health check failed");
+        const result = await res.json();
+        setUser(result.user); // ユーザーはログイン状態を維持
       } catch (e) {
         setUser(null);
-        sessionStorage.removeItem("loggedInUserId");
         navigate("/");
       }
     }, 5000); // 5秒ごと
@@ -65,7 +55,7 @@ const TopPageContent: React.FC = () => {
             <>
               <UserProfile user={user} />
               <button style={{ marginTop: 16 }} onClick={() => navigate("/profile/edit")}>プロフィール編集</button>
-              <button style={{ marginTop: 16 }} onClick={() => { setUser(null); sessionStorage.removeItem("loggedInUserId"); navigate("/"); }}>ログアウト</button>
+              <button style={{ marginTop: 16 }} onClick={() => { setUser(null); navigate("/"); }}>ログアウト</button>
             </>
           ) : (
             <>
